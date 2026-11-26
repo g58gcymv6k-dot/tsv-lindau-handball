@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Holt Tabelle und Spielplan von handball4all und schreibt site/data/liga.json.
-Läuft automatisch per GitHub Actions (sonntags 23:00 Uhr). Bei Fehlern wird die
+Läuft automatisch per GitHub Actions (samstags und sonntags 23:00 Uhr). Bei Fehlern wird die
 alte Datei NICHT überschrieben und das Skript endet mit Fehler (rote Aktion).
 
 Aufruf: python3 scripts/liga_update.py [datei.json]   (Datei = Test ohne Internet)

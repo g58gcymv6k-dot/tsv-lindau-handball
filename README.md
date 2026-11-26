@@ -9,7 +9,7 @@ Android: Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzuf
 
 ## So funktioniert es
 - `site/` – die Seite (wird über GitHub Pages veröffentlicht)
-- `site/data/liga.json` – Tabelle und Spiele, **automatisch jeden Sonntag 23:00 Uhr**
+- `site/data/liga.json` – Tabelle und Spiele, **automatisch jeden Samstag und Sonntag 23:00 Uhr**
   von handball4all geholt (`scripts/liga_update.py`, `.github/workflows/update.yml`).
   GitHub startet geplante Abläufe teils verspätet.
 - `site/data/spieler.json` – Spielerstatistik aus den Spielberichten (PDF).
