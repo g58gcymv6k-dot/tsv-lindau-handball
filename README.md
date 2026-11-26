@@ -16,6 +16,8 @@ Android: Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzuf
   Die PDFs werden **nicht** automatisch geladen, sondern im Claude-Chat hochgeladen
   und mit `scripts/bericht_auswerten.py` ausgewertet (Prüfung: Torsumme = Endstand,
   Spielertore = Mannschaftsliste; „N.N.“ über `site/data/trikotliste.json`).
+- `berichte/` – Archiv der Spielberichte (PDF, Dateiname `JJJJ-MM-TT_Spielnummer.pdf`).
+  Gesamtprüfung: `python3 scripts/bericht_auswerten.py berichte/` wertet alle neu aus.
 - Manuelles Update: Aktionen → „Update & Veröffentlichen“ → „Run workflow“.
 
 Quelle der Daten: handball4all / Spielbetrieb BWHV.

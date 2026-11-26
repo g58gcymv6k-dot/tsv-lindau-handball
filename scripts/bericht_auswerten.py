@@ -107,7 +107,7 @@ def auswerten(pdf):
         del s['_liste']
     d = no.group(2)
     return dict(nr=no.group(1), datum=d, iso='20' + d[6:8] + '-' + d[3:5] + '-' + d[0:2], gegner=gegner, heim=heim,
-                f=f, a=a, zuschauer=end.group(5), seg_f=seg_f, seg_a=seg_a, team=team,
+                f=f, a=a, zuschauer=end.group(5), seg_f=seg_f, seg_a=seg_a, team=team, nn=len(zuordnung),
                 spieler=sorted(spieler.values(), key=lambda s: s['nr'])), zuordnung, unbekannt
 
 

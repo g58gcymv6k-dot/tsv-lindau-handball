@@ -111,7 +111,7 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 <h2>Spielerstatistik</h2>
 <div class="tabs" id="ptabs"><button data-k="t" aria-pressed="true">Tore</button><button data-k="avg" aria-pressed="false">Tore/Spiel</button><button data-k="s7" aria-pressed="false">7m</button><button data-k="z" aria-pressed="false">2 Min.</button><button data-k="sp" aria-pressed="false">Spiele</button></div>
 <div class="card scroll"><table id="ptab"><thead><tr><th>Spieler</th><th class="r">Sp</th><th class="r">Tore</th><th class="r">Ø</th><th class="r">7m</th><th class="r">Verw.</th><th class="r">2 Min.</th><th class="r">Disq.</th></tr></thead><tbody></tbody></table></div>
-<p class="note">Sp = im Spielbericht aufgeführt. 7m = verwandelt/geworfen. Disq. = Disqualifikationen. Einträge „N.N.“ im Bericht sind über die Trikotnummer der Kaderliste des Trainers zugeordnet (13 Einträge). Weicht die Nummer im Bericht von der Liste ab, gilt der Name im Bericht.</p>
+<p class="note">Sp = im Spielbericht aufgeführt. 7m = verwandelt/geworfen. Disq. = Disqualifikationen. Einträge „N.N.“ im Bericht sind über die Trikotnummer der Kaderliste des Trainers zugeordnet (<span id="nnz">–</span> Einträge). Weicht die Nummer im Bericht von der Liste ab, gilt der Name im Bericht.</p>
 <h3>Tore pro Spiel</h3>
 <div class="card scroll"><table id="mtab"></table></div>
 </div></section>
@@ -179,7 +179,8 @@ $('mtab').className='m';
 $('mtab').innerHTML=`<thead><tr><th>Spieler</th>${SG.map(g=>`<th title="${esc(g.gegner)}">${esc(g.datum.slice(0,5))}<br><span class="note">${g.heim?'H':'A'} ${g.f}:${g.a}</span></th>`).join('')}<th>Σ</th></tr></thead><tbody>${[...PL].sort((a,b)=>b.t-a.t||a.name.localeCompare(b.name)).filter(p=>p.t>0).map(p=>`<tr><td>${esc(p.name)}</td>${p.pg.map(v=>v===null?'<td class="z">·</td>':`<td>${v||'<span class="z">0</span>'}</td>`).join('')}<td><b>${p.t}</b></td></tr>`).join('')}</tbody>`;
 const seg=[0,1,2,3,4,5].map(i=>SG.reduce((s,g)=>s+g.seg_f[i],0)),oseg=[0,1,2,3,4,5].map(i=>SG.reduce((s,g)=>s+g.seg_a[i],0));
 const mx=Math.max(1,...seg,...oseg),lab=['0–10','10–20','20–30','30–40','40–50','50–60'];
-$('segh').textContent=`Tore nach Spielabschnitt (${SG.length} Spiele mit Bericht)`;
+$('segh').textContent='Tore nach Spielabschnitt'+(SG.length<done.length?` (${SG.length} von ${done.length} Spielen mit Bericht)`:'');
+$('nnz').textContent=SG.reduce((s,g)=>s+(g.nn||0),0);
 $('seg').innerHTML='<div class="seg">'+lab.map((l,i)=>`<span>${l}′</span><div><div class="bar" style="width:${seg[i]/mx*100}%"></div><div class="bar o" style="width:${oseg[i]/mx*100}%;margin-top:3px"></div></div><span class="num" style="font-weight:800">${seg[i]}:${oseg[i]}</span>`).join('')+'</div><p class="note" style="margin:8px 0 0">Grün (obere Balken): Tore TSV Lindau, rot (untere Balken): Gegentore. Minute laut Spielverlauf im Bericht.</p>';
 const tt=k=>SG.reduce((s,g)=>s+(g.team[k]||0),0),pc=(a,b)=>b?` (${Math.round(a/b*100)} %)`:'';
 const hz=SG.filter(g=>g.heim);const zz=hz.map(g=>+g.zuschauer).filter(n=>n>0);
