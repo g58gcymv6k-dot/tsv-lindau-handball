@@ -28,6 +28,24 @@ def laden(quelle):
         return json.loads(r.read().decode('utf-8'))
 
 
+def _tok(name):
+    return [t for t in str(name).lower().replace('.', ' ').replace('-', ' ').split() if t]
+
+
+def zuordnen(name, tabellen_namen):
+    """Spielplan nutzt teils Kurzformen ("Bregenz Handb. 2" statt "Bregenz Handball 2").
+    Ordnet einen Namen eindeutig einem Tabellennamen zu; sonst bleibt der Originalname."""
+    if name in tabellen_namen:
+        return name
+    a = _tok(name)
+    treffer = []
+    for t in tabellen_namen:
+        b = _tok(t)
+        if len(a) == len(b) and all(x.startswith(y) or y.startswith(x) for x, y in zip(a, b)):
+            treffer.append(t)
+    return treffer[0] if len(treffer) == 1 else name
+
+
 def umwandeln(raw):
     d = raw[0] if isinstance(raw, list) else raw
     head, c = d.get('head') or {}, d.get('content') or {}
@@ -35,11 +53,12 @@ def umwandeln(raw):
                     sp=zahl(s.get('numPlayedGames')), s=zahl(s.get('numWonGames')), u=zahl(s.get('numEqualGames')),
                     n=zahl(s.get('numLostGames')), tf=zahl(s.get('numGoalsShot')), ta=zahl(s.get('numGoalsGot')),
                     pp=zahl(s.get('pointsPlus')), pm=zahl(s.get('pointsMinus'))) for s in c.get('score') or []]
-    spiele, gesehen = [], set()
+    namen = [r['team'] for r in tabelle]
+    spiele, alle, gesehen = [], [], set()
     quellen = list(c.get('games') or []) + list((c.get('futureGames') or {}).get('games') or [])
     for g in quellen:
         h, gu = str(g.get('gHomeTeam', '')).strip(), str(g.get('gGuestTeam', '')).strip()
-        if TEAM not in (h, gu) or g.get('gID') in gesehen:
+        if g.get('gID') in gesehen or not h or not gu:
             continue
         gesehen.add(g.get('gID'))
         datum = str(g.get('gDate', '')).strip()
@@ -47,6 +66,18 @@ def umwandeln(raw):
             iso = datetime.datetime.strptime(datum, '%d.%m.%y').date().isoformat()
         except ValueError:
             iso = ''
+        th, tg = zahl(g.get('gHomeGoals')), zahl(g.get('gGuestGoals'))
+        gespielt = th is not None and tg is not None
+        # Liga-weite Spiele (nur Ergebnisse/Termine, keine Personen)
+        alle.append(dict(datum=datum, iso=iso, tag=str(g.get('gWDay', '')).strip(), zeit=str(g.get('gTime', '')).strip(),
+                         heim=zuordnen(h, namen), gast=zuordnen(gu, namen),
+                         th=th if gespielt else None, tg=tg if gespielt else None,
+                         hzh=zahl(g.get('gHomeGoals_1')) if gespielt else None,
+                         hzg=zahl(g.get('gGuestGoals_1')) if gespielt else None,
+                         ort=str(g.get('gGymnasiumTown', '')).strip(),
+                         kommentar=str(g.get('gComment', '') or '').strip()))
+        if TEAM not in (h, gu):
+            continue
         sgid = zahl(g.get('sGID')) or 0
         spiele.append(dict(datum=datum, iso=iso, tag=str(g.get('gWDay', '')).strip(), zeit=str(g.get('gTime', '')).strip(),
                            heim=h, gast=gu, th=zahl(g.get('gHomeGoals')), tg=zahl(g.get('gGuestGoals')),
@@ -59,16 +90,37 @@ def umwandeln(raw):
     for s in spiele:  # ohne Ergebnis -> beide None
         if s['th'] is None or s['tg'] is None:
             s['th'] = s['tg'] = s['hzh'] = s['hzg'] = None
+    alle.sort(key=lambda s: (s['iso'], s['zeit'], s['heim']))
     return dict(liga=str(head.get('name', '')).strip(), staffel=str(head.get('headline2', '') or head.get('headline1', '')).strip(),
                 stand_quelle=str(head.get('actualized', '')).strip(),
                 abgerufen=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
-                tabelle=tabelle, spiele=spiele)
+                tabelle=tabelle, spiele=spiele, alle=alle)
+
+
+def pruefen_alle(d):
+    """Gegenprobe: Spiele/Tore je Mannschaft aus 'alle' müssen zur Tabelle passen. Gibt Warnungen zurück."""
+    w = []
+    namen = {r['team'] for r in d['tabelle']}
+    fremd = sorted({n for s in d['alle'] for n in (s['heim'], s['gast'])} - namen)
+    if fremd:
+        w.append('Nicht zugeordnete Namen: ' + ', '.join(fremd))
+    for r in d['tabelle']:
+        gs = [s for s in d['alle'] if s['th'] is not None and r['team'] in (s['heim'], s['gast'])]
+        tf = sum(s['th'] if s['heim'] == r['team'] else s['tg'] for s in gs)
+        ta = sum(s['tg'] if s['heim'] == r['team'] else s['th'] for s in gs)
+        if (len(gs), tf, ta) != (r['sp'], r['tf'], r['ta']):
+            w.append(f"{r['team']}: Spiele/Tore aus Spielplan {len(gs)} / {tf}:{ta}, Tabelle {r['sp']} / {r['tf']}:{r['ta']}")
+    return w
 
 
 def main():
     neu = umwandeln(laden(sys.argv[1] if len(sys.argv) > 1 else None))
     if len(neu['tabelle']) < 2 or not any(r['team'] == TEAM for r in neu['tabelle']) or len(neu['spiele']) < 2:
         sys.exit(f"Abbruch: unplausible Daten (Tabelle {len(neu['tabelle'])} Zeilen, {len(neu['spiele'])} Spiele). Alte Datei bleibt.")
+    # Abweichungen (z. B. Wertungen am grünen Tisch) nur melden, die Seite weist selbst darauf hin
+    neu['pruefung'] = pruefen_alle(neu)
+    for x in neu['pruefung']:
+        print('WARNUNG:', x)
     if OUT.exists():
         alt = json.loads(OUT.read_text())
         if {k: v for k, v in alt.items() if k != 'abgerufen'} == {k: v for k, v in neu.items() if k != 'abgerufen'}:

@@ -74,6 +74,12 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 .seg{display:grid;grid-template-columns:70px minmax(0,1fr) 36px;gap:6px 10px;align-items:center;font-size:14px}.bar{height:12px;border-radius:6px;background:var(--brand)}.bar.o{background:var(--loss);opacity:.8}.m td,.m th{text-align:center;white-space:nowrap}.m td:first-child,.m th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}.m .z{color:var(--mute)}
 @media(max-width:600px){.board h1{font-size:23px}.vr{gap:6px 10px;padding:8px 10px}.vr i{width:26px;height:26px}.vs{font-size:19px}.logo{width:48px;height:48px}.nav a{padding:13px 7px;font-size:16px}.navin{gap:0;padding:0 10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}table{font-size:13px}th,td{padding:7px 4px}.g{grid-template-columns:70px minmax(0,1fr) auto}.hide-s{display:none}}
 .g .v a{white-space:nowrap}.err{background:#000;color:#fff;padding:16px;border-radius:10px;margin:20px max(5vw,16px)}
+.lp{display:none}.lp.on{display:block}
+.wk{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.wk b{font:800 22px "Barlow Condensed";text-align:center}
+.wk button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#000;color:#fff;font:800 24px/1 Barlow;cursor:pointer}.wk button:disabled{opacity:.3;cursor:default}
+.fm{display:inline-flex;gap:3px}.fm i{font-style:normal;width:20px;height:20px;border-radius:4px;display:grid;place-items:center;font:800 13px "Barlow Condensed"}
+.kw{background:color-mix(in srgb,var(--win) 35%,transparent)}.kl{background:color-mix(in srgb,var(--loss) 30%,transparent)}.ku{background:#5557}
+#krt td,#krt th{font-size:13px;padding:6px 5px}#krt tbody td:first-child{max-width:150px;overflow:hidden;text-overflow:ellipsis}#krt .x{background:#0003}#krt .mec{outline:2px solid var(--brand);outline-offset:-2px}
 .reload{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid #4d6a51;background:#1f3021;color:#fafafa;display:grid;place-items:center;cursor:pointer}.reload:active{transform:rotate(90deg)}.reload:focus-visible{outline:2px solid #fff}
 </style></head><body>
 
@@ -83,7 +89,7 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 <button class="reload" id="reload" type="button" aria-label="Aktualisieren" title="Aktualisieren"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
 </div></header>
 <nav class="nav" id="nav" aria-label="Bereiche"><div class="wrap navin">
-<a href="#uebersicht">Übersicht</a><a href="#tabelle">Tabelle</a><a href="#spiele">Spiele</a><a href="#spieler">Spieler</a><a href="#statistik">Statistik</a>
+<a href="#uebersicht">Übersicht</a><a href="#tabelle">Tabelle</a><a href="#spiele">Spiele</a><a href="#spieler">Spieler</a><a href="#statistik">Statistik</a><a href="#liga">Liga</a>
 </div></nav>
 
 <main>
@@ -123,6 +129,30 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 <div class="card" id="seg"></div>
 <div class="grid2" style="margin-top:14px" id="tstats"></div>
 </div></section>
+
+<section class="view band" id="v-liga"><div class="wrap">
+<h2>Liga</h2>
+<div class="tabs" id="ltabs"><button data-l="tag" aria-pressed="true">Spieltag</button><button data-l="teams" aria-pressed="false">Teams</button><button data-l="kreuz" aria-pressed="false">Kreuztabelle</button><button data-l="rek" aria-pressed="false">Rekorde</button></div>
+<div id="lwarn"></div>
+<div class="lp" id="l-tag">
+<div class="wk"><button type="button" id="wkp" aria-label="Vorheriges Wochenende">‹</button><b id="wkl"></b><button type="button" id="wkn" aria-label="Nächstes Wochenende">›</button></div>
+<div class="card scroll"><table id="wkt"></table></div>
+<p class="note">Spiele nach Kalenderwoche gruppiert (Spielwochenende), nicht nach offiziellem Spieltag. In Klammern: Halbzeitstand.</p>
+</div>
+<div class="lp" id="l-teams">
+<div class="tabs" id="tsort"><button data-k="pl" aria-pressed="true">Platz</button><button data-k="of" aria-pressed="false">Angriff</button><button data-k="df" aria-pressed="false">Abwehr</button><button data-k="hp" aria-pressed="false">Heim</button><button data-k="ap" aria-pressed="false">Auswärts</button><button data-k="fp" aria-pressed="false">Form</button><button data-k="h2" aria-pressed="false">2. HZ</button></div>
+<div class="card scroll"><table id="tvt"></table></div>
+<p class="note">Ø = pro Spiel. Heim/Auswärts = Punkte (2 pro Sieg, 1 pro Unentschieden). Form = letzte 5 Spiele, neuestes rechts. 1./2. HZ = Tordifferenz in der jeweiligen Halbzeit.</p>
+<h3>Restprogramm</h3>
+<div class="card scroll"><table id="rpt"></table></div>
+<p class="note">Stärke = durchschnittliche Punkte pro Spiel der noch ausstehenden Gegner, gemessen an der aktuellen Tabelle. Höher = schwereres Restprogramm.</p>
+</div>
+<div class="lp" id="l-kreuz">
+<div class="card scroll"><table id="krt" class="m"></table></div>
+<p class="note">Zeile = Heimmannschaft, Spalte = Gast (Nummer = aktueller Tabellenplatz). Grün/rot aus Sicht der Heimmannschaft, ohne Ergebnis: Spieldatum.</p>
+</div>
+<div class="lp" id="l-rek"><div class="grid2" id="rkg"></div></div>
+</div></section>
 </main>
 
 <footer class="band note"><div class="wrap" id="foot"></div></footer>
@@ -135,6 +165,61 @@ const dez=x=>x.toFixed(1).replace('.',',');
 const row=(l,v)=>`<tr><td>${esc(l)}</td><td class="r">${esc(v)}</td></tr>`;
 const card=(t,inner)=>`<div class="card"><h3 style="margin:0 0 6px;font-size:22px">${esc(t)}</h3><table>${inner}</table></div>`;
 let draw=()=>{};
+// ---------- Reiter Liga (nur Ergebnisse/Termine aller Spiele, keine Personen) ----------
+const liga=L=>{
+const T=L.tabelle,A=L.alle;
+if(!Array.isArray(A)||!A.length){$('lwarn').innerHTML='<div class="empty">Die Liga-Spiele werden beim nächsten automatischen Update (sonntags 21:30 Uhr) geladen.</div>';return}
+if(L.pruefung&&L.pruefung.length)$('lwarn').innerHTML=`<p class="note">Hinweis: Die aus den Spielen berechneten Werte weichen teils von der offiziellen Tabelle ab (z. B. durch Wertungen): ${L.pruefung.map(esc).join(' · ')}</p>`;
+const D=A.filter(g=>g.th!==null&&g.th!==undefined),pos=Object.fromEntries(T.map(r=>[r.team,r.pl]));
+const sg=d=>d>0?'+'+d:String(d),pkt=(f,a)=>f>a?2:f===a?1:0,res=(f,a)=>f>a?'S':f<a?'N':'U';
+const mine=g=>g.heim===ME||g.gast===ME;
+// Team-Werte
+const S=T.map(r=>{const gs=D.filter(g=>g.heim===r.team||g.gast===r.team);
+const v=gs.map(g=>{const h=g.heim===r.team,f=h?g.th:g.tg,a=h?g.tg:g.th,hf=h?g.hzh:g.hzg,ha=h?g.hzg:g.hzh;return{h,f,a,hf,ha,opp:h?g.gast:g.heim,g}});
+const hz=v.filter(x=>x.hf!==null&&x.ha!==null);
+const sumf=(a,k)=>a.reduce((s,x)=>s+x[k],0);
+const form=v.slice(-5).map(x=>res(x.f,x.a));
+const rest=A.filter(g=>(g.th===null||g.th===undefined)&&(g.heim===r.team||g.gast===r.team)).map(g=>g.heim===r.team?g.gast:g.heim);
+const ppg=t=>{const q=T.find(x=>x.team===t);return q&&q.sp?q.pp/q.sp:null};const rp=rest.map(ppg).filter(x=>x!==null);
+return{team:r.team,pl:r.pl,n:v.length,of:v.length?sumf(v,'f')/v.length:0,df:v.length?sumf(v,'a')/v.length:0,
+hp:v.filter(x=>x.h).reduce((s,x)=>s+pkt(x.f,x.a),0),hn:v.filter(x=>x.h).length,ap:v.filter(x=>!x.h).reduce((s,x)=>s+pkt(x.f,x.a),0),an:v.filter(x=>!x.h).length,
+form,fp:form.reduce((s,x)=>s+(x==='S'?2:x==='U'?1:0),0),h1:sumf(hz,'hf')-sumf(hz,'ha'),h2:(sumf(hz,'f')-sumf(hz,'hf'))-(sumf(hz,'a')-sumf(hz,'ha')),
+rest:rest.length,rs:rp.length?rp.reduce((a,b)=>a+b,0)/rp.length:null,v}});
+// Spielwochenende
+const mon=iso=>{const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);return d.toISOString().slice(0,10)};
+const W={};A.filter(g=>g.iso).forEach(g=>(W[mon(g.iso)]=W[mon(g.iso)]||[]).push(g));
+const wk=Object.keys(W).sort();const lastDone=[...wk].reverse().find(k=>W[k].some(g=>g.th!==null));let wi=Math.max(0,wk.indexOf(lastDone??wk[0]));
+const renderW=()=>{const gs=W[wk[wi]]||[];const ds=[...new Set(gs.map(g=>g.datum.slice(0,6)))];
+$('wkl').textContent=ds.join(' / ')||'–';$('wkp').disabled=wi<=0;$('wkn').disabled=wi>=wk.length-1;
+$('wkt').innerHTML=gs.map(g=>{const p=g.th!==null&&g.th!==undefined;return `<tr class="${mine(g)?'me':''}"><td class="note" style="white-space:nowrap">${esc(g.tag)} ${esc(g.zeit)}</td><td>${esc(g.heim)} – ${esc(g.gast)}${g.kommentar?` <span class="note">${esc(g.kommentar)}</span>`:''}</td><td class="r"><b>${p?g.th+':'+g.tg:'–'}</b>${p&&g.hzh!==null?` <span class="note">(${g.hzh}:${g.hzg})</span>`:''}</td></tr>`}).join('')};
+$('wkp').onclick=()=>{if(wi>0){wi--;renderW()}};$('wkn').onclick=()=>{if(wi<wk.length-1){wi++;renderW()}};renderW();
+// Teams
+const renderT=k=>{const l=[...S].sort(k==='pl'?(a,b)=>a.pl-b.pl:k==='df'?(a,b)=>a.df-b.df||a.pl-b.pl:(a,b)=>b[k]-a[k]||a.pl-b.pl);
+$('tvt').innerHTML=`<thead><tr><th class="r">Pl.</th><th>Mannschaft</th><th class="r">Ø Tore</th><th class="r">Ø Gegen</th><th class="r">Heim</th><th class="r">Ausw.</th><th>Form</th><th class="r">1. HZ</th><th class="r">2. HZ</th></tr></thead><tbody>${l.map(s=>`<tr class="${s.team===ME?'me':''}"><td class="r">${s.pl}</td><td>${esc(s.team)}</td><td class="r">${s.n?dez(s.of):'–'}</td><td class="r">${s.n?dez(s.df):'–'}</td><td class="r">${s.hp}:${2*s.hn-s.hp}</td><td class="r">${s.ap}:${2*s.an-s.ap}</td><td><span class="fm">${s.form.map(x=>`<i class="${x}">${x}</i>`).join('')}</span></td><td class="r">${sg(s.h1)}</td><td class="r">${sg(s.h2)}</td></tr>`).join('')}</tbody>`};
+renderT('pl');
+$('tsort').onclick=e=>{const b=e.target.closest('button');if(!b)return;for(const x of $('tsort').children)x.setAttribute('aria-pressed',x===b);renderT(b.dataset.k)};
+$('rpt').innerHTML=`<thead><tr><th class="r">Pl.</th><th>Mannschaft</th><th class="r">Offene Spiele</th><th class="r">Stärke</th></tr></thead><tbody>${[...S].filter(s=>s.rest).sort((a,b)=>b.rs-a.rs).map(s=>`<tr class="${s.team===ME?'me':''}"><td class="r">${s.pl}</td><td>${esc(s.team)}</td><td class="r">${s.rest}</td><td class="r">${s.rs===null?'–':s.rs.toFixed(2).replace('.',',')}</td></tr>`).join('')||'<tr><td>Keine offenen Spiele</td></tr>'}</tbody>`;
+// Kreuztabelle
+const O=[...T].sort((a,b)=>a.pl-b.pl).map(r=>r.team);
+$('krt').innerHTML=`<thead><tr><th>Heim \\ Gast</th>${O.map(t=>`<th title="${esc(t)}" class="${t===ME?'mec':''}">${pos[t]}</th>`).join('')}</tr></thead><tbody>${O.map(h=>`<tr><td title="${esc(h)}" class="${h===ME?'mec':''}">${pos[h]}. ${esc(h)}</td>${O.map(g=>{if(g===h)return '<td class="x"></td>';const m=A.filter(x=>x.heim===h&&x.gast===g);if(!m.length)return '<td class="z">·</td>';
+return m.map(x=>x.th!==null&&x.th!==undefined?`<td class="${x.th>x.tg?'kw':x.th<x.tg?'kl':'ku'}${h===ME||g===ME?' mec':''}" title="${esc(h+' – '+g+' '+x.datum)}">${x.th}:${x.tg}</td>`:`<td class="z${h===ME||g===ME?' mec':''}" title="${esc(h+' – '+g)}">${esc(x.datum.slice(0,6))}</td>`)[0]}).join('')}</tr>`).join('')}</tbody>`;
+// Rekorde
+if(!D.length){$('rkg').innerHTML='<div class="empty">Noch keine Ergebnisse.</div>';return}
+const tot=D.reduce((s,g)=>s+g.th+g.tg,0),hw=D.filter(g=>g.th>g.tg).length,dw=D.filter(g=>g.th===g.tg).length,aw=D.length-hw-dw,pc=x=>Math.round(x/D.length*100)+' %';
+const gl=g=>`${g.heim} – ${g.gast} ${g.th}:${g.tg}`,rw=(l,v)=>`<tr><td style="width:38%">${esc(l)}</td><td class="r" style="white-space:normal">${esc(v)}</td></tr>`;
+const by=f=>D.reduce((b,g)=>f(g)>f(b)?g:b);
+const big=by(g=>Math.abs(g.th-g.tg)),most=by(g=>g.th+g.tg),least=by(g=>-(g.th+g.tg)),topT=by(g=>Math.max(g.th,g.tg));
+const hzD=D.filter(g=>g.hzh!==null&&g.hzg!==null),turn=hzD.filter(g=>Math.sign(g.hzh-g.hzg)*Math.sign(g.th-g.tg)<0);
+const cl=D.filter(g=>Math.abs(g.th-g.tg)<=1).length;
+const me=S.find(s=>s.team===ME);const rank=(k,asc)=>me?1+S.filter(s=>s.n&&(asc?s[k]<me[k]:s[k]>me[k])).length:'–';
+let h=card('Liga gesamt',row('Gespielte Spiele',D.length+' von '+A.length)+row('Ø Tore pro Spiel',dez(tot/D.length))+row('Heimsiege / Unentschieden / Auswärtssiege',`${hw} / ${dw} / ${aw}`)+row('Heimsiegquote',pc(hw))+row('Spiele mit höchstens 1 Tor Unterschied',cl));
+h+=card('Rekorde',rw('Höchster Sieg',gl(big))+rw('Torreichstes Spiel',gl(most)+' ('+(most.th+most.tg)+')')+rw('Torärmstes Spiel',gl(least)+' ('+(least.th+least.tg)+')')+rw('Meiste Tore einer Mannschaft',gl(topT)));
+h+=card('Halbzeit-Wenden',row('Spiele mit gedrehter Halbzeitführung',turn.length+' von '+hzD.length)+turn.slice(-5).reverse().map(g=>row(g.datum.slice(0,6)+' '+g.heim+' – '+g.gast,`${g.hzh}:${g.hzg} → ${g.th}:${g.tg}`)).join(''));
+if(me&&me.n)h+=card('TSV Lindau im Ligavergleich',row('Ø Tore (Rang)',dez(me.of)+' ('+rank('of')+'.)')+row('Ø Gegentore (Rang)',dez(me.df)+' ('+rank('df',true)+'.)')+row('Liga-Schnitt Tore je Mannschaft',dez(tot/D.length/2))+row('Punkte Heim / Auswärts',me.hp+':'+(2*me.hn-me.hp)+' / '+me.ap+':'+(2*me.an-me.ap))+row('Punkte letzte 5 Spiele',me.fp+':'+(2*me.form.length-me.fp)));
+$('rkg').innerHTML=h;
+};
+const lshow=p=>{for(const x of $('ltabs').children)x.setAttribute('aria-pressed',x.dataset.l===p);for(const d of document.querySelectorAll('.lp'))d.classList.toggle('on',d.id==='l-'+p)};
+$('ltabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)lshow(b.dataset.l)});lshow('tag');
 const start=(L,S)=>{
 const table=L.tabelle,me=table.find(r=>r.team===ME)||{};
 const games=L.spiele.map(g=>{const home=g.heim===ME,played=g.th!==null&&g.th!==undefined;const f=played?(home?g.th:g.tg):null,a=played?(home?g.tg:g.th):null;
@@ -188,11 +273,12 @@ $('tstats').innerHTML=card('7-Meter',row('TSV Lindau',tt('s7')+'/'+tt('v7')+pc(t
 +card('Strafen',row('2 Min. TSV Lindau / Gegner',tt('z')+' / '+tt('oz'))+row('Verwarnungen Spieler TSV Lindau',tt('ver')))
 +card('Zuschauer Heimspiele',hz.map(g=>row(g.datum.slice(0,5)+' vs. '+g.gegner,g.zuschauer)).join('')+(zz.length?row('Ø (mit Angabe)',Math.round(zz.reduce((a,b)=>a+b,0)/zz.length)):''));
 const ab=L.abgerufen?new Date(L.abgerufen).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}):'–';
+try{liga(L)}catch(e){$('lwarn').innerHTML=`<div class="empty">Liga-Daten konnten nicht ausgewertet werden (${esc(e.message)}).</div>`}
 $('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(String(L.stand_quelle).replace(/^Letzte Änderung:\s*/,''))}, zuletzt geändert ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch sonntags ca. 21:30 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
 draw();
 };
 // Reiter
-const V=['uebersicht','tabelle','spiele','spieler','statistik'];
+const V=['uebersicht','tabelle','spiele','spieler','statistik','liga'];
 const show=()=>{const v=V.includes(location.hash.slice(1))?location.hash.slice(1):'uebersicht';
 for(const s of document.querySelectorAll('.view'))s.classList.toggle('on',s.id==='v-'+v);
 for(const a of document.querySelectorAll('#nav a')){if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')}
