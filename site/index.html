@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TSV Lindau Handball</title>
+<meta name="theme-color" content="#293e2b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TSV Handball">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&family=Inter:wght@800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: sachlich, wie eine Hallen-Anzeigetafel plus Vereinsaushang
+   IDEA: Anzeigetafel in der Halle Lindau-Aeschach
+   PICTURE: Tordifferenz-Balken je Spiel, Heim/Auswärts
+   COLOUR and TYPE: Hallenboden-Blau, Tafel-Dunkel, Signal-Orange; Barlow Condensed
+   LAYOUT: Tafel oben, dann Tabelle, Spielplan, Statistik, Spieler */
+:root{color-scheme:dark;--bg:#293e2b;--card:#1f3021;--ink:#f4f7f4;--mute:#b5c4b6;--line:#3b553e;--blue:var(--ink);--board:#293e2b;--brand:#8fc394;--win:#4cc283;--loss:#ff6b5b}
+:root[data-theme]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,.num{font-family:"Barlow Condensed",Barlow,sans-serif}
+h1,h2,h3{text-transform:uppercase;font-family:Inter,"Helvetica Neue",Arial,sans-serif!important;font-weight:800!important;letter-spacing:-.01em}
+h2{font-size:clamp(22px,6.5vw,32px);line-height:1.05;margin:0 0 14px;text-wrap:balance;hyphens:auto;overflow-wrap:break-word}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}.wrap{max-width:1240px;margin:0 auto}
+.board{background:var(--board);color:#fafafa}
+.top{display:flex;align-items:center;gap:16px;padding:14px max(5vw,16px) 6px}.logo{width:64px;height:64px;flex:none;color:#fafafa}
+.nav{background:#293e2b;border-top:1px solid #3c5640;border-bottom:1px solid #1d2d1f;position:sticky;top:0;z-index:5}.navin{display:flex;gap:4px;overflow-x:auto;padding:0 max(5vw,16px);scrollbar-width:none}
+.nav a{flex:none;color:#c9d6ca;text-decoration:none;font:600 17px/1 "Barlow Condensed";letter-spacing:.02em;padding:14px 12px;border-bottom:3px solid transparent;min-height:44px}
+.nav a[aria-current=page]{color:#fff;border-bottom-color:#fafafa}.nav a:focus-visible{outline:2px solid #fff}
+.view{display:none}.view.on{display:block}.hero{background:#293e2b;color:#fafafa}
+h3{font:800 24px "Barlow Condensed";margin:22px 0 8px}
+.board h1{font-size:clamp(26px,5vw,40px);line-height:1.05;margin:0}
+.sub{color:#c9d6ca;margin:2px 0 0;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:#1f3021;border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font:800 clamp(30px,5vw,44px)/1 "Barlow Condensed";color:var(--or)}
+.kpi span{color:#c9d6ca;font-size:14px}
+.next{background:#000;border:1px solid #000;border-radius:10px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline}
+.next .num{font-size:26px;font-weight:800}
+.form{display:flex;gap:6px;margin:18px 0 6px;flex-wrap:wrap}
+.form i{font-style:normal;width:30px;height:30px;border-radius:6px;display:grid;place-items:center;font-weight:800;font-family:"Barlow Condensed"}
+.S{background:var(--win);color:#fff}.N{background:var(--loss);color:#fff}.U{background:#888;color:#fff}
+.fig{position:relative;min-height:240px;margin-top:8px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:13px;color:var(--mute);font-weight:600}td.r,th.r{text-align:right;white-space:nowrap}
+tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700;box-shadow:inset 4px 0 0 var(--brand)}
+.scroll{overflow-x:auto}
+.games{display:grid;gap:8px}
+.g{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:4px 14px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:10px 14px}
+.g.w{border-left-color:var(--win)}.g.l{border-left-color:var(--loss)}
+.g .d{font:600 15px/1.2 "Barlow Condensed";color:var(--mute)}.g .d b{display:block;font-size:20px;color:var(--ink)}
+.g .t{font-weight:600}.g .v{font-size:13px;color:var(--mute)}
+.g .s{font:800 26px/1 "Barlow Condensed";text-align:right;white-space:nowrap}.g .s small{display:block;font:400 12px Barlow;color:var(--mute)}
+.g a{font-size:13px;color:var(--ink)}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{font:600 16px Barlow;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.tabs button[aria-pressed=true]{background:#000;color:#fff;border-color:#000}.tabs button{background:#1f3021}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.note{font-size:13px;color:var(--mute)}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:20px;color:var(--mute)}
+.seg{display:grid;grid-template-columns:70px minmax(0,1fr) 36px;gap:6px 10px;align-items:center;font-size:14px}.bar{height:12px;border-radius:6px;background:var(--brand)}.bar.o{background:var(--loss);opacity:.8}.m td,.m th{text-align:center;white-space:nowrap}.m td:first-child,.m th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}.m .z{color:var(--mute)}
+@media(max-width:600px){.logo{width:48px;height:48px}.nav a{padding:13px 7px;font-size:16px}.navin{gap:0;padding:0 10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}table{font-size:13px}th,td{padding:7px 4px}.g{grid-template-columns:70px minmax(0,1fr) auto}.hide-s{display:none}}
+.g .v a{white-space:nowrap}.err{background:#000;color:#fff;padding:16px;border-radius:10px;margin:20px max(5vw,16px)}
+</style></head><body>
+
+<header class="board"><div class="wrap top">
+<svg class="logo" viewBox="0 0 375 375" role="img" aria-label="Lindau Handball Logo"><path d="M375 76.863V289.97L275.845 375H99.586L0 289.972V76.86L89.804 0h195.825L375 76.863zM91.627 4.842L4.894 79.073v208.683l96.512 82.402H274.02l96.087-82.399V79.069L283.799 4.842H91.627zm147.134 341.91c-1.154 1.015-2.265 1.733-3.333 2.149-1.06.42-2.207.628-3.429.628-2.017 0-3.568-.509-4.652-1.53s-1.624-2.331-1.624-3.909c0-.933.204-1.784.611-2.55.411-.772.95-1.39 1.61-1.859s1.412-.813 2.241-1.052c.607-.167 1.526-.331 2.767-.485 2.507-.315 4.361-.68 5.542-1.107l.024-.844c0-1.312-.29-2.238-.887-2.778-.787-.721-1.975-1.09-3.54-1.09-1.464 0-2.545.27-3.246.804-.697.526-1.205 1.462-1.543 2.815l-3.047-.431c.28-1.353.735-2.439 1.368-3.27s1.553-1.469 2.756-1.91c1.198-.451 2.583-.673 4.165-.673 1.564 0 2.839.195 3.82.571.974.386 1.696.865 2.155 1.438.466.578.795 1.312.97 2.198.111.546.159 1.541.159 2.969v4.301l.203 5.679c.124.789.387 1.552.78 2.276h-3.249c-.319-.66-.529-1.443-.622-2.341zm-30.577 2.344h-2.891v-26.238h3.119v9.363c1.312-1.705 2.987-2.563 5.025-2.563 1.129 0 2.207.236 3.205.711 1.012.472 1.844 1.134 2.494 1.985.656.854 1.167 1.883 1.536 3.089a13.37 13.37 0 0 1 .549 3.865c0 3.259-.773 5.774-2.334 7.554-1.554 1.784-3.423 2.669-5.603 2.669-2.168 0-3.864-.94-5.1-2.812v2.378zm-55.284-2.344c-1.149 1.015-2.252 1.733-3.325 2.149-1.057.42-2.203.628-3.425.628-2.02 0-3.575-.509-4.652-1.53-1.088-1.019-1.63-2.331-1.63-3.909 0-.933.207-1.784.617-2.55.408-.772.947-1.39 1.607-1.859.666-.464 1.412-.813 2.241-1.052.615-.167 1.53-.331 2.773-.485 2.504-.315 4.355-.68 5.543-1.107l.017-.844c0-1.312-.293-2.238-.88-2.778-.791-.721-1.976-1.09-3.543-1.09-1.468 0-2.545.27-3.246.804-.694.526-1.216 1.462-1.543 2.815l-3.05-.431c.284-1.353.74-2.439 1.375-3.27s1.547-1.469 2.741-1.91c1.199-.451 2.59-.673 4.169-.673 1.568 0 2.846.195 3.823.571.981.386 1.696.865 2.162 1.438.455.578.784 1.312.97 2.198.1.546.152 1.541.152 2.969v4.301l.197 5.679c.138.789.397 1.552.79 2.276h-3.253c-.328-.66-.528-1.443-.629-2.341zm42.862 2.344V346.7c-1.164 1.886-2.873 2.829-5.135 2.829-1.461 0-2.807-.423-4.04-1.25-1.223-.837-2.173-2.006-2.849-3.505-.67-1.5-1.008-3.222-1.008-5.163 0-1.899.303-3.622.914-5.162s1.527-2.733 2.75-3.553c1.226-.827 2.59-1.234 4.1-1.234 1.102 0 2.093.239 2.956.728.864.478 1.568 1.107 2.114 1.885v-9.413h3.094v26.234h-2.894zm-81.679 0v-26.234h3.357v10.773h13.178v-10.773h3.351v26.234h-3.351V336.73h-13.178v12.365h-3.357zm48.307 0v-19.007h2.801v2.706c1.344-2.088 3.295-3.137 5.84-3.137 1.109 0 2.124.212 3.049.625s1.624.947 2.086 1.613.784 1.463.97 2.385c.118.598.173 1.64.173 3.127v11.688h-3.115V337.54c0-1.319-.121-2.296-.363-2.949-.242-.645-.671-1.168-1.285-1.562-.621-.386-1.339-.577-2.168-.577a4.97 4.97 0 0 0-3.436 1.305c-.957.871-1.444 2.525-1.444 4.958v10.38h-3.109zm95.417-26.234h3.115v26.234h-3.115v-26.234zm-9.632 0h3.105v26.234h-3.105v-26.234zm-9.68 16.691c-1.122.489-2.814.892-5.08 1.227-1.278.185-2.18.403-2.711.643s-.94.588-1.223 1.045c-.293.458-.435.97-.435 1.535 0 .858.318 1.575.936 2.146.635.574 1.55.861 2.759.861s2.262-.277 3.201-.82c.929-.544 1.615-1.289 2.047-2.225.338-.731.504-1.804.504-3.222v-1.189zm-85.847 0c-1.132.489-2.818.892-5.08 1.227-1.282.185-2.186.403-2.718.643s-.94.588-1.226 1.045c-.294.458-.432.97-.432 1.535 0 .858.314 1.575.942 2.146s1.551.861 2.757.861c1.198 0 2.262-.277 3.201-.82.925-.544 1.619-1.289 2.051-2.225.335-.731.504-1.804.504-3.222v-1.189zm55.505-.103c0 2.282.297 3.929.898 4.944.981 1.654 2.307 2.484 3.975 2.484 1.361 0 2.538-.605 3.532-1.831.988-1.224 1.479-3.048 1.479-5.471 0-2.48-.47-4.308-1.423-5.494s-2.1-1.774-3.447-1.774c-1.364 0-2.534.612-3.53 1.835s-1.485 2.993-1.485 5.306zm-22.226.16c0 2.436.5 4.258 1.492 5.46s2.155 1.807 3.505 1.807c1.361 0 2.518-.573 3.464-1.725s1.43-2.908 1.43-5.269c0-2.607-.487-4.51-1.454-5.733-.967-1.213-2.158-1.825-3.574-1.825-1.389 0-2.539.585-3.464 1.76-.932 1.168-1.399 3.013-1.399 5.524zm42.405-23.982c-1.668 1.422-3.271 2.426-4.82 3.01-1.541.584-3.188.878-4.953.878-2.919 0-5.16-.715-6.731-2.143-1.564-1.428-2.348-3.26-2.348-5.48 0-1.306.29-2.495.884-3.577s1.368-1.948 2.327-2.596 2.035-1.148 3.236-1.483c.88-.229 2.218-.458 4.002-.673 3.637-.441 6.314-.957 8.026-1.561l.028-1.179c0-1.841-.421-3.133-1.274-3.888-1.15-1.018-2.863-1.531-5.125-1.531-2.124 0-3.681.376-4.69 1.118-1.015.741-1.758 2.06-2.245 3.953l-4.399-.601c.4-1.893 1.066-3.417 1.975-4.582.919-1.162 2.242-2.054 3.979-2.686 1.733-.622 3.744-.943 6.03-.943 2.262 0 4.106.274 5.522.806 1.422.533 2.459 1.21 3.125 2.02s1.137 1.838 1.402 3.074c.152.769.228 2.16.228 4.165v6.024l.291 7.969a9.77 9.77 0 0 0 1.136 3.191h-4.703c-.47-.933-.77-2.027-.902-3.284zm28.564 3.284v-3.91c-2.072 3.01-4.876 4.514-8.423 4.514-1.578 0-3.036-.301-4.403-.903-1.355-.601-2.363-1.356-3.022-2.269s-1.119-2.029-1.382-3.348c-.193-.888-.28-2.292-.28-4.22v-16.51h4.507v14.781c0 2.362.09 3.946.269 4.77.287 1.183.885 2.111 1.796 2.798.925.673 2.058 1.012 3.416 1.012 1.343 0 2.607-.345 3.795-1.042 1.184-.687 2.02-1.64 2.507-2.832.487-1.2.743-2.935.743-5.204v-14.282h4.503v26.645h-4.027zm-57.148 0v-3.359c-1.686 2.644-4.159 3.964-7.429 3.964a10.42 10.42 0 0 1-5.844-1.753c-1.775-1.172-3.15-2.812-4.124-4.9-.977-2.109-1.464-4.521-1.464-7.247 0-2.662.439-5.074 1.323-7.24s2.218-3.827 3.979-4.978c1.768-1.156 3.743-1.733 5.926-1.733 1.606 0 3.028.335 4.282 1.014s2.263 1.565 3.054 2.649v-13.196h4.472v36.779h-4.175zm-57.073-26.641h4.5v26.644h-4.5v-26.644zm11.348 26.641v-26.645h4.052v3.789c1.951-2.928 4.769-4.394 8.454-4.394 1.603 0 3.077.293 4.417.871s2.352 1.333 3.015 2.269c.67.94 1.132 2.054 1.399 3.334.169.837.248 2.307.248 4.391v16.384h-4.5v-16.206c0-1.845-.175-3.212-.528-4.127s-.967-1.637-1.858-2.176c-.895-.547-1.945-.823-3.139-.823-1.921 0-3.571.611-4.973 1.831-1.385 1.223-2.083 3.543-2.083 6.956v14.546h-4.504zm-39.939 0v-36.779h4.949v32.446h18.414v4.333h-23.363zm113.872-13.37c-1.637.673-4.079 1.24-7.352 1.705-1.851.269-3.16.567-3.923.908-.774.328-1.364.823-1.779 1.462a3.84 3.84 0 0 0-.628 2.146c0 1.21.455 2.215 1.367 3.01.913.81 2.235 1.21 3.986 1.21 1.733 0 3.28-.383 4.628-1.141 1.354-.769 2.345-1.807 2.976-3.123.487-1.025.725-2.532.725-4.521v-1.657zm-42.444.076c0 3.413.719 5.969 2.152 7.656s3.129 2.533 5.077 2.533c1.965 0 3.64-.806 5.017-2.423s2.062-4.076 2.062-7.387c0-3.649-.701-6.324-2.1-8.03s-3.126-2.562-5.177-2.562c-2.003 0-3.675.824-5.018 2.461s-2.014 4.223-2.014 7.753zm-42.837-23.484h4.5v5.193h-4.5v-5.193zm137.934-18.328l6.907-4.271-21.008-.711 1.436-10.677-21.001 7.824-.725-8.822-23.728 5.419.705-9.263-16.446 9.789v-10.466l-17.51 8.918 12.992-25.298c12.516-15.423 25.795-17.392 31.949-17.354-3.267 1.805-6.382 5.217-6.382 11.775 0 13.81 10.36 14.665 15.109 14.237s24.892-6.549 38.42-2.135 17.699 6.262 17.699 6.262-.011-.116-.039-.283c-.245-1.715-2.079-12.054-13.202-31.605-12.233-21.498-25.107-26.873-35.147-26.873s-15.862 2.029-18.884 9.824c-1.938 4.989 1.154 11.412 3.637 15.423-6.255-.291-21.326 1.052-35.385 18.017h-8.831l12.451-24.235h-12.451l12.451-24.239h-9.321c13.724-24.796 31.247-29.6 39.245-30.444-1.502 2.16-3.418 5.877-3.418 10.883 0 8.221 3.021 15.587 14.788 15.587s19.077-6.99 27.086-11.21c11.552-6.085 30.76-9.929 30.76-9.929s-17.809-14.843-27.089-24.45-18.13-15.376-29.03-15.376-17.409 5.908-19.208 14.948c-1.441 7.244 3.498 13.038 6.882 16.062-7.618.561-25.083 4.397-39.619 26.61l4.566-22.92-9.196 10.059c-.518-11.859.576-33.898 1.126-43.772 2.448 2.419 6.427 4.565 12.17 4.565 12.087 0 14.104-10.719 13.382-17.084-1.077-9.506-7.553-19.114-14.459-29.686-6.233-9.536-10.271-22.031-11-24.382 0 0-.266-.106-.643 1.227-2.027 3.823-8.561 15.871-14.08 22.872-6.617 8.399-16.978 17.084-16.978 29.043 0 10.961 2.445 19.22 12.374 19.22 8.023 0 13.106-3.321 15.786-6.099-.553 9.868-1.668 32.077-1.126 44.278l-9.049-10.24 4.977 25.022c-14.951-22.9-32.117-28.147-38.884-29.354 3.326-3.157 7.56-8.641 6.21-15.42-1.799-9.041-8.31-14.948-19.209-14.948s-19.75 5.764-29.03 15.376-27.089 24.45-27.089 24.45 19.209 3.844 30.757 9.929c8.013 4.22 15.327 11.21 27.09 11.21s14.784-7.367 14.784-15.587a18.89 18.89 0 0 0-3.923-11.562c6.534 1.305 23.967 6.967 38.437 31.124h-7.504l11.445 24.239H174.19l11.445 24.235h-7.301c-15.054-18.253-32.239-18.434-38.587-17.764 2.504-3.987 5.767-10.581 3.795-15.676-3.021-7.794-8.848-9.824-18.884-9.824s-22.914 5.375-35.146 26.873c-11.131 19.552-12.961 29.891-13.203 31.605-.032.167-.038.283-.038.283s4.171-1.851 17.699-6.262 33.672 1.708 38.42 2.135 15.109-.427 15.109-14.237c0-6.383-2.949-9.797-6.12-11.638 6.244-.424 20.317.581 33.233 15.403l12.867 27.256-17.785-9.061v11.32l-17.883-10.643.701 9.263-23.725-5.419-.729 8.822-20.997-7.824 1.436 10.677-21.008.711 6.907 4.271-22.448 15.659 32.954-13.38 3.022 6.119 19.931-13.79-.795 9.662 25.642-12.953.981 12.953 16.011-10.722v13.568l18.525-11.06 18.525 11.06v-12.608l14.574 9.761.977-12.953 25.646 12.953-.795-9.662 19.93 13.79 3.022-6.119 32.953 13.38-22.448-15.659zM132.12 206.882l-.374.038c-24.512 2.832-40.178 12.778-48.956 20.582 1.913-4.82 4.841-11.125 9.283-18.932 9.59-16.848 20.545-25.39 32.587-25.39 9.76 0 13.838 2.009 16.145 7.958 1.779 4.595-2.521 11.914-5.055 15.379-1.244.095-2.432.232-3.63.365zm102.372-15.745c2.307-5.949 6.382-7.958 16.145-7.958 12.036 0 22.997 8.542 32.584 25.39 4.442 7.808 7.367 14.112 9.287 18.932-8.779-7.804-24.448-17.75-48.964-20.582l-.369-.038-3.626-.365c-2.539-3.465-6.838-10.784-5.056-15.379zm-4.179-65.504c1.623-8.131 7.418-12.605 16.331-12.605 9.058 0 17.105 4.326 26.906 14.474 5.036 5.214 12.426 11.846 18.256 16.924-11.583-2.491-29.389-5.805-42.365-5.805-5.021 0-8.903.491-11.79 1.499-2.656-2.077-8.699-7.656-7.339-14.487zm-90.655 14.487c-2.884-1.008-6.765-1.499-11.794-1.499-12.968 0-30.781 3.314-42.36 5.805 5.826-5.078 13.22-11.71 18.255-16.924 9.801-10.147 17.848-14.474 26.91-14.474 8.91 0 14.709 4.473 16.329 12.605 1.36 6.831-4.684 12.41-7.34 14.487zm47.559-33.327c-.653 1.373-5.318 7.186-15.254 7.186-4.9 0-9.435-1.978-9.435-16.315 0-8.378 5.971-15.208 11.745-21.813 1.641-1.865 3.177-3.628 4.607-5.442 3.132-3.977 6.541-9.451 9.321-14.224l-.985 50.61zM323.755 86.96c2.597-3.055 4.998-5.249 7.218-6.588 2.21-1.336 4.376-1.992 6.485-1.955 2.114.024 4.124.827 6.02 2.406 1.402 1.165 2.399 2.467 2.98 3.905.587 1.432.778 2.966.573 4.593s-.75 3.352-1.637 5.194c-.895 1.831-2.424 4.028-4.596 6.591-2.577 3.034-4.97 5.227-7.177 6.567-2.207 1.332-4.372 1.999-6.489 1.971-2.111-.023-4.127-.827-6.044-2.419-2.521-2.091-3.744-4.626-3.661-7.609.101-3.581 2.214-7.798 6.327-12.656zm3.299 2.737c-3.596 4.25-5.498 7.486-5.682 9.731-.186 2.231.46 3.964 1.93 5.193 1.471 1.217 3.312 1.542 5.512.964s5.09-2.986 8.685-7.213c3.609-4.261 5.505-7.5 5.688-9.738.18-2.227-.473-3.971-1.972-5.211-1.474-1.22-3.17-1.579-5.098-1.076-2.441.66-5.463 3.106-9.065 7.35zM58.432 103.998l-19.34-22.8-8.613 7.144-2.59-3.051 20.721-17.19 2.584 3.051-8.641 7.172 19.339 22.807-3.46 2.867zm239.954-27.912l3.602 2.508c-1.119 1.835-1.579 3.54-1.364 5.108s.968 2.89 2.248 3.953c1.544 1.285 3.347 1.797 5.387 1.531 2.052-.27 3.879-1.354 5.492-3.256 1.536-1.805 2.241-3.663 2.1-5.569-.142-1.896-1.047-3.537-2.708-4.917-1.036-.855-2.165-1.401-3.391-1.63-1.226-.219-2.386-.161-3.488.185l-2.691-2.891 13.793-11.176 13 10.786-2.57 3.031-10.436-8.655-7.298 5.778c2.49.222 4.594 1.052 6.314 2.48 2.286 1.89 3.54 4.275 3.785 7.142.248 2.857-.678 5.525-2.759 7.981-1.983 2.341-4.393 3.789-7.212 4.35-3.453.704-6.63-.15-9.531-2.559-2.373-1.972-3.757-4.241-4.141-6.807-.391-2.566.235-5.023 1.868-7.374zM65.86 83.679l3.022-2.99c1.254 1.166 2.517 1.927 3.785 2.286 1.26.362 2.711.304 4.337-.171 1.616-.475 3.171-1.329 4.652-2.562 1.323-1.097 2.321-2.255 3.001-3.482s.987-2.385.905-3.468-.459-2.033-1.139-2.83c-.688-.806-1.524-1.319-2.518-1.53-.984-.212-2.203-.068-3.64.427-.94.311-2.839 1.179-5.726 2.6-2.881 1.422-5.022 2.279-6.41 2.57-1.799.393-3.412.363-4.835-.085s-2.639-1.271-3.65-2.456a8.53 8.53 0 0 1-1.975-4.593c-.218-1.759.148-3.523 1.085-5.306s2.286-3.403 4.047-4.862c1.938-1.606 3.906-2.716 5.916-3.328 2.003-.611 3.906-.649 5.719-.109s3.395 1.541 4.741 3.007l-3.108 2.996c-1.565-1.486-3.212-2.214-4.953-2.204-1.733.024-3.609.869-5.612 2.535-2.096 1.733-3.298 3.376-3.608 4.934-.308 1.552-.018 2.864.891 3.933.79.93 1.768 1.408 2.963 1.449 1.174.048 3.425-.779 6.772-2.488 3.343-1.702 5.739-2.754 7.19-3.15 2.103-.568 3.978-.625 5.598-.165s3.029 1.391 4.207 2.775c1.167 1.381 1.872 3.007 2.106 4.882.229 1.877-.106 3.776-1.025 5.689s-2.314 3.646-4.175 5.198c-2.37 1.957-4.642 3.266-6.814 3.909-2.18.649-4.303.66-6.365.044-2.079-.611-3.872-1.767-5.385-3.454zm223.304-27.598c-.925-1.588-1.322-3.099-1.209-4.527.118-1.421.705-2.758 1.761-4.005a8.34 8.34 0 0 1 6.071-3.044c2.449-.147 4.818.724 7.083 2.61 2.287 1.896 3.568 4.073 3.844 6.544a8.24 8.24 0 0 1-1.982 6.515c-1.013 1.196-2.214 1.975-3.603 2.334s-2.938.247-4.641-.348c1.167 1.849 1.678 3.694 1.543 5.542-.141 1.849-.887 3.578-2.245 5.176-1.875 2.208-4.244 3.414-7.104 3.605-2.853.194-5.571-.779-8.147-2.921-2.583-2.146-4.02-4.623-4.317-7.446-.303-2.825.505-5.364 2.421-7.619 1.43-1.687 3.05-2.74 4.87-3.154 1.831-.417 3.712-.177 5.653.738zm-7.239 5.166c-.766.905-1.294 1.965-1.581 3.168-.284 1.21-.19 2.398.273 3.57.46 1.183 1.181 2.176 2.165 2.993 1.534 1.271 3.218 1.838 5.039 1.691 1.83-.147 3.38-.977 4.655-2.48 1.295-1.527 1.855-3.219 1.671-5.071-.172-1.852-1.036-3.42-2.583-4.702-1.509-1.257-3.184-1.801-5.011-1.637s-3.37.988-4.628 2.467zm-176.018 3.345L73.845 47.146l3.744-3.109 22.724 13.145c1.823 1.052 3.478 2.084 4.955 3.091-.788-1.746-1.509-3.543-2.172-5.398L94.224 30.23l3.529-2.928 11.69 34.349-3.536 2.942zM293.085 50.17c-1.04 1.22-1.485 2.556-1.351 3.988.142 1.435.843 2.682 2.117 3.741 1.237 1.029 2.58 1.476 4.017 1.366 1.447-.116 2.642-.731 3.588-1.845.985-1.168 1.409-2.48 1.274-3.956-.141-1.463-.825-2.706-2.038-3.711-1.222-1.014-2.562-1.472-4.034-1.364-1.464.099-2.659.698-3.574 1.78zm-28.965 9.011l-3.212-2.666 17.154-20.23c-1.389.092-3.022-.021-4.891-.335s-3.461-.697-4.769-1.169l2.604-3.061c2.504.649 4.932.946 7.28.868 2.345-.068 4.276-.434 5.778-1.086l2.072 1.715-22.016 25.965z" fill="currentColor"/></svg>
+<div><h1>TSV Lindau · Herren</h1><p class="sub">Bezirksoberliga Oberschwaben-Ostalb · Hallenrunde 2026/27</p></div>
+</div></header>
+<nav class="nav" id="nav" aria-label="Bereiche"><div class="wrap navin">
+<a href="#uebersicht">Übersicht</a><a href="#tabelle">Tabelle</a><a href="#spiele">Spiele</a><a href="#spieler">Spieler</a><a href="#statistik">Statistik</a>
+</div></nav>
+
+<main>
+<section class="view band hero" id="v-uebersicht"><div class="wrap">
+<div class="kpis" id="kpis"></div>
+<div class="next" id="next"></div>
+<div class="form" id="form" aria-label="Form der letzten Spiele"></div>
+<div class="fig"><svg id="chart" role="img" aria-label="Tordifferenz je Spiel"></svg></div>
+<p class="note" style="color:#c9d6ca">Tordifferenz je Spiel · H = Heim, A = Auswärts</p>
+</div></section>
+
+<section class="view band" id="v-tabelle"><div class="wrap">
+<h2>Tabelle</h2>
+<div class="card scroll"><table id="tab"><thead><tr><th class="r">Pl.</th><th>Mannschaft</th><th class="r">Sp</th><th class="r">S</th><th class="r">U</th><th class="r">N</th><th class="r">Tore</th><th class="r hide-s">Diff</th><th class="r">Pkt</th></tr></thead><tbody></tbody></table></div>
+<p class="note">Laut Quelle während der Saison nach Punktestand, bei Gleichstand nach direktem Vergleich berechnet.</p>
+</div></section>
+
+<section class="view band" id="v-spiele"><div class="wrap">
+<h2>Spielplan &amp; Ergebnisse</h2>
+<div class="tabs" id="tabs"><button data-f="all" aria-pressed="true">Alle</button><button data-f="done" aria-pressed="false">Gespielt</button><button data-f="open" aria-pressed="false">Kommend</button></div>
+<div class="games" id="games"></div>
+</div></section>
+
+<section class="view band" id="v-spieler"><div class="wrap">
+<h2>Spielerstatistik</h2>
+<div class="tabs" id="ptabs"><button data-k="t" aria-pressed="true">Tore</button><button data-k="avg" aria-pressed="false">Tore/Spiel</button><button data-k="s7" aria-pressed="false">7m</button><button data-k="z" aria-pressed="false">2 Min.</button><button data-k="sp" aria-pressed="false">Spiele</button></div>
+<div class="card scroll"><table id="ptab"><thead><tr><th>Spieler</th><th class="r">Sp</th><th class="r">Tore</th><th class="r">Ø</th><th class="r">7m</th><th class="r">Verw.</th><th class="r">2 Min.</th><th class="r">Disq.</th></tr></thead><tbody></tbody></table></div>
+<p class="note">Sp = im Spielbericht aufgeführt. 7m = verwandelt/geworfen. Disq. = Disqualifikationen. Einträge „N.N.“ im Bericht sind über die Trikotnummer der Kaderliste des Trainers zugeordnet (13 Einträge). Weicht die Nummer im Bericht von der Liste ab, gilt der Name im Bericht.</p>
+<h3>Tore pro Spiel</h3>
+<div class="card scroll"><table id="mtab"></table></div>
+</div></section>
+
+<section class="view band" id="v-statistik"><div class="wrap">
+<h2>Mannschaftsstatistik</h2>
+<div class="grid2" id="stats"></div>
+<h3 id="segh">Tore nach Spielabschnitt</h3>
+<div class="card" id="seg"></div>
+<div class="grid2" style="margin-top:14px" id="tstats"></div>
+</div></section>
+</main>
+
+<footer class="band note"><div class="wrap" id="foot"></div></footer>
+
+<script>{
+const ME='TSV Lindau';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dez=x=>x.toFixed(1).replace('.',',');
+const row=(l,v)=>`<tr><td>${esc(l)}</td><td class="r">${esc(v)}</td></tr>`;
+const card=(t,inner)=>`<div class="card"><h3 style="margin:0 0 6px;font-size:22px">${esc(t)}</h3><table>${inner}</table></div>`;
+let draw=()=>{};
+const start=(L,S)=>{
+const table=L.tabelle,me=table.find(r=>r.team===ME)||{};
+const games=L.spiele.map(g=>{const home=g.heim===ME,played=g.th!==null&&g.th!==undefined;const f=played?(home?g.th:g.tg):null,a=played?(home?g.tg:g.th):null;
+return{...g,home,opp:home?g.gast:g.heim,played,f,a,hf:played?(home?g.hzh:g.hzg):null,ha:played?(home?g.hzg:g.hzh):null,res:played?(f>a?'S':f<a?'N':'U'):null}});
+const done=games.filter(g=>g.played),open=games.filter(g=>!g.played);
+const today=new Date().toISOString().slice(0,10);
+const next=open.find(g=>g.iso>=today)||open[0];
+const sum=(a,k)=>a.reduce((s,g)=>s+(g[k]||0),0);
+$('kpis').innerHTML=[[(me.pl??'–')+'.','Tabellenplatz'],[me.pp+':'+me.pm,'Punkte'],[me.tf+':'+me.ta,'Tore'],[done.length?dez(sum(done,'f')/done.length):'–','Tore pro Spiel']].map(k=>`<div class="kpi"><b>${esc(k[0])}</b><span>${esc(k[1])}</span></div>`).join('');
+const maps=g=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent([g.halle,g.strasse,g.plz,g.ort].filter(Boolean).join(' '));
+$('next').innerHTML=next?`<span>Nächstes Spiel</span><span class="num">${esc(next.tag)}, ${esc(next.datum)} · ${esc(next.zeit)} Uhr</span><span>${next.home?'Heim gegen':'Auswärts bei'} <b>${esc(next.opp)}</b> · <a style="color:#fff" href="${maps(next)}">${esc(next.halle)}, ${esc(next.ort)}</a></span>`:'<span>Saison beendet</span>';
+$('form').innerHTML=done.map(g=>`<i class="${g.res}" title="${esc(g.datum+' '+g.opp+' '+g.f+':'+g.a)}">${g.res}</i>`).join('');
+const s=$('chart');
+draw=()=>{const W=s.clientWidth,H=s.clientHeight;if(!W||!done.length)return;const pad=24,mid=H/2,max=Math.max(...done.map(g=>Math.abs(g.f-g.a)),5),bw=(W-pad*2)/done.length,narrow=W<520;
+let o=`<line x1="${pad}" x2="${W-pad}" y1="${mid}" y2="${mid}" stroke="#6d8a70"/>`;
+done.forEach((g,i)=>{const d=g.f-g.a,h=Math.abs(d)/max*(mid-34),x=pad+i*bw+bw*.18,w=bw*.64,y=d>=0?mid-h:mid,col=d>0?'#4cc283':d<0?'#ff6b5b':'#999';
+o+=`<rect x="${x}" y="${y}" width="${w}" height="${Math.max(h,2)}" rx="3" fill="${col}"/><text x="${x+w/2}" y="${d>=0?y-6:y+h+15}" text-anchor="middle" fill="#fff" font-family="Barlow Condensed" font-weight="800" font-size="15">${d>0?'+':''}${d}</text>`;
+if(!narrow)o+=`<text x="${x+w/2}" y="${d>=0?mid+16:mid-8}" text-anchor="middle" fill="#c9d6ca" font-size="11">${g.home?'H':'A'} ${esc(g.datum.slice(0,5))}</text>`});
+s.innerHTML=o};
+new ResizeObserver(()=>draw()).observe(s);
+document.querySelector('#tab tbody').innerHTML=table.map(r=>`<tr class="${r.team===ME?'me':''}"><td class="r">${r.pl}</td><td>${esc(r.team)}</td><td class="r">${r.sp}</td><td class="r">${r.s}</td><td class="r">${r.u}</td><td class="r">${r.n}</td><td class="r">${r.tf}:${r.ta}</td><td class="r hide-s">${r.tf-r.ta>0?'+':''}${r.tf-r.ta}</td><td class="r"><b>${r.pp}:${r.pm}</b></td></tr>`).join('');
+const renderGames=f=>{const list=f==='done'?done:f==='open'?open:games;
+$('games').innerHTML=list.map(g=>`<div class="g ${g.res==='S'?'w':g.res==='N'?'l':''}"><div class="d"><b>${esc(g.datum.slice(0,6))}</b>${esc(g.tag)} ${esc(g.zeit)}</div>
+<div><div class="t">${esc(g.heim)} – ${esc(g.gast)}</div><div class="v">${g.home?'Heim':'Auswärts'} · ${esc(g.halle)}, ${esc(g.ort)} · <a href="${maps(g)}">Route</a>${g.bericht?` · <a href="${esc(g.bericht)}">Spielbericht (PDF)</a>`:''}${g.kommentar?` · ${esc(g.kommentar)}`:''}</div></div>
+<div class="s">${g.played?`${g.th}:${g.tg}<small>HZ ${g.hzh??'–'}:${g.hzg??'–'}</small>`:'<small>offen</small>'}</div></div>`).join('')};
+renderGames('all');
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;for(const x of $('tabs').children)x.setAttribute('aria-pressed',x===b);renderGames(b.dataset.f)});
+// Mannschaft
+const split=a=>{const w=a.filter(g=>g.res==='S').length,l=a.filter(g=>g.res==='N').length,u=a.length-w-l;return{n:a.length,w,u,l,f:sum(a,'f'),a:sum(a,'a'),pts:2*w+u}};
+const blk=(t,x)=>card(t,row('Spiele',x.n)+row('S / U / N',x.w+' / '+x.u+' / '+x.l)+row('Punkte',x.pts+':'+(2*x.n-x.pts))+row('Tore',x.f+':'+x.a)+(x.n?row('Ø Tore / Gegentore',dez(x.f/x.n)+' / '+dez(x.a/x.n)):''));
+let st=blk('Heim',split(done.filter(g=>g.home)))+blk('Auswärts',split(done.filter(g=>!g.home)));
+if(done.length){const T=split(done),hf=sum(done,'hf'),ha=sum(done,'ha');const best=done.reduce((b,g)=>g.f-g.a>b.f-b.a?g:b),worst=done.reduce((b,g)=>g.f-g.a<b.f-b.a?g:b);
+st+=card('Halbzeiten & Extreme',row('1. Halbzeit (Tore)',hf+':'+ha)+row('2. Halbzeit (Tore)',(T.f-hf)+':'+(T.a-ha))+row('Höchster Sieg',best.f>best.a?best.f+':'+best.a+' vs. '+best.opp:'–')+row('Höchste Niederlage',worst.f<worst.a?worst.f+':'+worst.a+' vs. '+worst.opp:'–')+row('Knappe Niederlagen (1–2 Tore)',done.filter(g=>g.a-g.f>0&&g.a-g.f<=2).length))}
+$('stats').innerHTML=st;
+// Spieler aus Spielberichten
+const SG=S.spiele;const P={};
+SG.forEach((g,i)=>g.spieler.forEach(p=>{const q=P[p.name]||(P[p.name]={name:p.name,nrs:new Set(),sp:0,t:0,s7:0,v7:0,ver:0,z:0,disq:0,pg:Array(SG.length).fill(null)});
+q.nrs.add(p.nr);q.sp++;for(const k of['t','s7','v7','ver','z','disq'])q[k]+=p[k]||0;q.pg[i]=p.t}));
+const PL=Object.values(P).map(p=>({...p,nrs:[...p.nrs].sort((a,b)=>a-b),avg:p.sp?p.t/p.sp:0}));
+const renderP=k=>{const l=[...PL].sort((a,b)=>b[k]-a[k]||b.t-a.t||a.name.localeCompare(b.name));
+document.querySelector('#ptab tbody').innerHTML=l.map(p=>`<tr><td>${esc(p.name)} <span class="note">#${esc(p.nrs.join('/'))}</span></td><td class="r">${p.sp}</td><td class="r"><b>${p.t}</b></td><td class="r">${dez(p.avg)}</td><td class="r">${p.v7?p.s7+'/'+p.v7:'–'}</td><td class="r">${p.ver||'–'}</td><td class="r">${p.z||'–'}</td><td class="r">${p.disq||'–'}</td></tr>`).join('')};
+renderP('t');
+$('ptabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;for(const x of $('ptabs').children)x.setAttribute('aria-pressed',x===b);renderP(b.dataset.k)});
+$('mtab').className='m';
+$('mtab').innerHTML=`<thead><tr><th>Spieler</th>${SG.map(g=>`<th title="${esc(g.gegner)}">${esc(g.datum.slice(0,5))}<br><span class="note">${g.heim?'H':'A'} ${g.f}:${g.a}</span></th>`).join('')}<th>Σ</th></tr></thead><tbody>${[...PL].sort((a,b)=>b.t-a.t||a.name.localeCompare(b.name)).filter(p=>p.t>0).map(p=>`<tr><td>${esc(p.name)}</td>${p.pg.map(v=>v===null?'<td class="z">·</td>':`<td>${v||'<span class="z">0</span>'}</td>`).join('')}<td><b>${p.t}</b></td></tr>`).join('')}</tbody>`;
+const seg=[0,1,2,3,4,5].map(i=>SG.reduce((s,g)=>s+g.seg_f[i],0)),oseg=[0,1,2,3,4,5].map(i=>SG.reduce((s,g)=>s+g.seg_a[i],0));
+const mx=Math.max(1,...seg,...oseg),lab=['0–10','10–20','20–30','30–40','40–50','50–60'];
+$('segh').textContent=`Tore nach Spielabschnitt (${SG.length} Spiele mit Bericht)`;
+$('seg').innerHTML='<div class="seg">'+lab.map((l,i)=>`<span>${l}′</span><div><div class="bar" style="width:${seg[i]/mx*100}%"></div><div class="bar o" style="width:${oseg[i]/mx*100}%;margin-top:3px"></div></div><span class="num" style="font-weight:800">${seg[i]}:${oseg[i]}</span>`).join('')+'</div><p class="note" style="margin:8px 0 0">Grün (obere Balken): Tore TSV Lindau, rot (untere Balken): Gegentore. Minute laut Spielverlauf im Bericht.</p>';
+const tt=k=>SG.reduce((s,g)=>s+(g.team[k]||0),0),pc=(a,b)=>b?` (${Math.round(a/b*100)} %)`:'';
+const hz=SG.filter(g=>g.heim);const zz=hz.map(g=>+g.zuschauer).filter(n=>n>0);
+$('tstats').innerHTML=card('7-Meter',row('TSV Lindau',tt('s7')+'/'+tt('v7')+pc(tt('s7'),tt('v7')))+row('Gegner',tt('os7')+'/'+tt('ov7')+pc(tt('os7'),tt('ov7'))))
++card('Strafen',row('2 Min. TSV Lindau / Gegner',tt('z')+' / '+tt('oz'))+row('Verwarnungen Spieler TSV Lindau',tt('ver')))
++card('Zuschauer Heimspiele',hz.map(g=>row(g.datum.slice(0,5)+' vs. '+g.gegner,g.zuschauer)).join('')+(zz.length?row('Ø (mit Angabe)',Math.round(zz.reduce((a,b)=>a+b,0)/zz.length)):''));
+const ab=L.abgerufen?new Date(L.abgerufen).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}):'–';
+$('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(L.stand_quelle)}, abgerufen ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch sonntags ca. 21:30 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
+draw();
+};
+// Reiter
+const V=['uebersicht','tabelle','spiele','spieler','statistik'];
+const show=()=>{const v=V.includes(location.hash.slice(1))?location.hash.slice(1):'uebersicht';
+for(const s of document.querySelectorAll('.view'))s.classList.toggle('on',s.id==='v-'+v);
+for(const a of document.querySelectorAll('#nav a')){if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')}
+window.scrollTo(0,0);draw()};
+window.addEventListener('hashchange',show);show();
+const get=u=>fetch(u+'?v='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(u+': '+r.status);return r.json()});
+Promise.all([get('data/liga.json'),get('data/spieler.json')]).then(([L,S])=>start(L,S)).catch(e=>{document.querySelector('main').insertAdjacentHTML('afterbegin',`<div class="err">Daten konnten nicht geladen werden (${esc(e.message)}). Bitte später neu laden.</div>`)});
+}</script></body></html>

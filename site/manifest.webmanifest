@@ -1,0 +1,16 @@
+{
+  "name": "TSV Lindau Handball – Herren",
+  "short_name": "TSV Handball",
+  "description": "Tabelle, Spiele, Hallen und Spielerstatistik der TSV Lindau Herren",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#293e2b",
+  "theme_color": "#293e2b",
+  "lang": "de",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

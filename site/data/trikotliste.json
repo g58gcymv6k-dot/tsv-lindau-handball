@@ -1,0 +1,12 @@
+{
+  "_hinweis": "Kaderliste des Trainers (Stand 26.11.2026). Wird nur benutzt, um 'N.N.'-Einträge in Spielberichten über die Trikotnummer zuzuordnen.",
+  "nummern": {
+    "1": "Ronald Steppan", "2": "Elias Bräu", "4": "Oussama Hadrich", "5": "Maik Grote",
+    "6": "Simon Stausberg", "7": "Alexander Haller", "8": "Norbert Knechtel", "9": "Julian Gauger",
+    "12": "Jens Ellermann", "13": "Felix Rutschke", "15": "Ben Tränkle", "22": "Christoph Grübel",
+    "23": "Tristan Siegel", "31": "Jakob Holl", "32": "Moritz Pieper", "41": "Jonas Weiher",
+    "66": "Lukas Miller", "71": "Paul Kobelke", "75": "Nico Rizzo", "77": "Benedikt Hecht",
+    "89": "Johannes Brombeis", "95": "Julian Richter"
+  },
+  "abweichungen": { "Maik Grote": "spielt aktuell mit Nr. 23" }
+}

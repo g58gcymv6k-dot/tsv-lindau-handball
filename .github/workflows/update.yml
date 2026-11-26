@@ -1,0 +1,77 @@
+name: Update & Veröffentlichen
+
+on:
+  schedule:
+    # Sonntag 21:30 Uhr deutscher Zeit. GitHub rechnet in UTC, daher zwei Zeiten;
+    # der Schritt "Uhrzeit prüfen" lässt nur die passende laufen (Sommer-/Winterzeit).
+    - cron: '30 19 * * 0'   # = 21:30 Sommerzeit
+    - cron: '30 20 * * 0'   # = 21:30 Winterzeit
+  workflow_dispatch:        # manuell starten: Aktionen -> "Update & Veröffentlichen" -> "Run workflow"
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.zeit.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Uhrzeit prüfen (Sommer-/Winterzeit)
+        id: zeit
+        run: |
+          OFFSET=$(TZ=Europe/Berlin date +%z)
+          SKIP=false
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ "${{ github.event.schedule }}" = "30 19 * * 0" ] && [ "$OFFSET" != "+0200" ]; then SKIP=true; fi
+            if [ "${{ github.event.schedule }}" = "30 20 * * 0" ] && [ "$OFFSET" != "+0100" ]; then SKIP=true; fi
+          fi
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+          echo "Berlin-Offset $OFFSET, überspringen: $SKIP"
+
+      - name: Tabelle und Spielplan von handball4all holen
+        if: steps.zeit.outputs.skip != 'true'
+        # Bei einem normalen Upload (push) darf ein Fehler die Veröffentlichung nicht verhindern
+        continue-on-error: ${{ github.event_name == 'push' }}
+        run: python3 scripts/liga_update.py
+
+      - name: Neue Daten speichern
+        if: steps.zeit.outputs.skip != 'true'
+        run: |
+          git config user.name "liga-update"
+          git config user.email "liga-update@users.noreply.github.com"
+          git add site/data/liga.json
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen."
+          else
+            git commit -m "Automatisches Liga-Update $(TZ=Europe/Berlin date '+%d.%m.%Y %H:%M')"
+            git push
+          fi
+
+      - name: Seite vorbereiten
+        if: steps.zeit.outputs.skip != 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4
