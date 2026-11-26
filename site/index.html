@@ -29,6 +29,7 @@ h2{font-size:clamp(22px,6.5vw,32px);line-height:1.05;margin:0 0 14px;text-wrap:b
 .top{display:flex;align-items:center;gap:16px;padding:14px max(5vw,16px) 6px}.logo{width:64px;height:64px;flex:none;color:#fafafa}
 .nav{background:#293e2b;border-top:1px solid #3c5640;border-bottom:1px solid #1d2d1f;position:sticky;top:0;z-index:5}.navin{display:flex;gap:4px;overflow-x:auto;padding:0 max(5vw,16px);scrollbar-width:none}
 .nav a{flex:none;color:#c9d6ca;text-decoration:none;font:600 17px/1 "Barlow Condensed";letter-spacing:.02em;padding:14px 12px;border-bottom:3px solid transparent;min-height:44px}
+.dsg{margin-top:14px}.dsg summary{cursor:pointer;text-decoration:underline;min-height:44px;display:flex;align-items:center}.dsg p{max-width:70ch;margin:6px 0}
 .nav a[aria-current=page]{color:#fff;border-bottom-color:#fafafa}.nav a:focus-visible{outline:2px solid #fff}
 .view{display:none}.view.on{display:block}.hero{background:#293e2b;color:#fafafa}
 h3{font:800 24px "Barlow Condensed";margin:22px 0 8px}
@@ -165,7 +166,15 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 </div></section>
 </main>
 
-<footer class="band note"><div class="wrap" id="foot"></div></footer>
+<footer class="band note"><div class="wrap"><div id="foot"></div>
+<details class="dsg" id="datenschutz"><summary>Datenschutz</summary>
+<p>Verantwortlich für diese Seite: Felix Rutschke, TSV Lindau Herren (Handball).</p>
+<p><b>Hosting:</b> Die Seite liegt bei GitHub Pages (GitHub Inc.). Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie die IP-Adresse, u. a. zur Sicherheit des Dienstes. Details: <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement">Datenschutzerklärung von GitHub</a>.</p>
+<p><b>Schriftarten:</b> Die Schriften werden von Google Fonts geladen; dabei wird die IP-Adresse an Google übermittelt.</p>
+<p><b>Liveticker:</b> Während eines Spiels fragt die Seite den Spielstand direkt bei handball4all (Spielbetrieb BWHV) ab; „Ticker hier anzeigen“ lädt den Ticker von dort. Dabei wird die IP-Adresse an handball4all übermittelt.</p>
+<p id="dsg-gc" hidden><b>Besucherzählung:</b> Zur Zählung der Aufrufe nutzt die Seite GoatCounter (goatcounter.com). Es werden keine Cookies gesetzt und nichts im Browser gespeichert; erfasst werden aufgerufener Reiter, verweisende Seite, Browser, Betriebssystem, Bildschirmgröße und Land. Es entstehen keine Nutzerprofile. Details: <a href="https://www.goatcounter.com/privacy">Datenschutz von GoatCounter</a>.</p>
+<p>Die Seite selbst setzt keine Cookies. Spielerdaten stammen aus den offiziellen Spielberichten; Geburtsdaten werden nicht angezeigt.</p>
+</details></div></footer>
 
 <script>{
 const ME='TSV Lindau';
@@ -339,12 +348,17 @@ $('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${
 draw();
 try{liveInit(L)}catch(e){}
 };
+// Besucherzählung (GoatCounter). Zum Abschalten GC leer lassen ('').
+const GC='';
+let gcQ=null;
+const gcCount=v=>{if(!GC)return;const p='/'+v;const g=window.goatcounter;if(g&&g.count)g.count({path:p,title:v});else gcQ=p};
+if(GC){$('dsg-gc').hidden=false;window.goatcounter={no_onload:true};const sc=document.createElement('script');sc.async=true;sc.src='https://gc.zgo.at/count.js';sc.dataset.goatcounter=`https://${GC}.goatcounter.com/count`;sc.onload=()=>{if(gcQ){window.goatcounter.count({path:gcQ,title:gcQ.slice(1)});gcQ=null}};document.head.appendChild(sc)}
 // Reiter
 const V=['uebersicht','tabelle','spiele','spieler','statistik','liga'];
 const show=()=>{const v=V.includes(location.hash.slice(1))?location.hash.slice(1):'uebersicht';
 for(const s of document.querySelectorAll('.view'))s.classList.toggle('on',s.id==='v-'+v);
 for(const a of document.querySelectorAll('#nav a')){if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')}
-window.scrollTo(0,0);draw()};
+window.scrollTo(0,0);draw();gcCount(v)};
 window.addEventListener('hashchange',show);show();
 const get=u=>fetch(u+'?v='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(u+': '+r.status);return r.text()});
 const VER=document.querySelector('meta[name=app-version]').content;
