@@ -69,6 +69,11 @@ def main():
     neu = umwandeln(laden(sys.argv[1] if len(sys.argv) > 1 else None))
     if len(neu['tabelle']) < 2 or not any(r['team'] == TEAM for r in neu['tabelle']) or len(neu['spiele']) < 2:
         sys.exit(f"Abbruch: unplausible Daten (Tabelle {len(neu['tabelle'])} Zeilen, {len(neu['spiele'])} Spiele). Alte Datei bleibt.")
+    if OUT.exists():
+        alt = json.loads(OUT.read_text())
+        if {k: v for k, v in alt.items() if k != 'abgerufen'} == {k: v for k, v in neu.items() if k != 'abgerufen'}:
+            print('OK: keine inhaltliche Änderung, Datei bleibt unverändert.')
+            return
     OUT.write_text(json.dumps(neu, ensure_ascii=False, indent=1))
     gesp = sum(s['th'] is not None for s in neu['spiele'])
     print(f"OK: {len(neu['tabelle'])} Mannschaften, {len(neu['spiele'])} Spiele ({gesp} gespielt), Stand Quelle: {neu['stand_quelle']}")

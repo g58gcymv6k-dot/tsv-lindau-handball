@@ -178,7 +178,7 @@ $('tstats').innerHTML=card('7-Meter',row('TSV Lindau',tt('s7')+'/'+tt('v7')+pc(t
 +card('Strafen',row('2 Min. TSV Lindau / Gegner',tt('z')+' / '+tt('oz'))+row('Verwarnungen Spieler TSV Lindau',tt('ver')))
 +card('Zuschauer Heimspiele',hz.map(g=>row(g.datum.slice(0,5)+' vs. '+g.gegner,g.zuschauer)).join('')+(zz.length?row('Ø (mit Angabe)',Math.round(zz.reduce((a,b)=>a+b,0)/zz.length)):''));
 const ab=L.abgerufen?new Date(L.abgerufen).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}):'–';
-$('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(String(L.stand_quelle).replace(/^Letzte Änderung:\s*/,''))}, abgerufen ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch sonntags ca. 21:30 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
+$('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(String(L.stand_quelle).replace(/^Letzte Änderung:\s*/,''))}, zuletzt geändert ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch sonntags ca. 21:30 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
 draw();
 };
 // Reiter
