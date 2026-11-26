@@ -168,7 +168,7 @@ let draw=()=>{};
 // ---------- Reiter Liga (nur Ergebnisse/Termine aller Spiele, keine Personen) ----------
 const liga=L=>{
 const T=L.tabelle,A=L.alle;
-if(!Array.isArray(A)||!A.length){$('lwarn').innerHTML='<div class="empty">Die Liga-Spiele werden beim nächsten automatischen Update (sonntags 21:30 Uhr) geladen.</div>';return}
+if(!Array.isArray(A)||!A.length){$('lwarn').innerHTML='<div class="empty">Die Liga-Spiele werden beim nächsten automatischen Update (sonntags 23:00 Uhr) geladen.</div>';return}
 if(L.pruefung&&L.pruefung.length)$('lwarn').innerHTML=`<p class="note">Hinweis: Die aus den Spielen berechneten Werte weichen teils von der offiziellen Tabelle ab (z. B. durch Wertungen): ${L.pruefung.map(esc).join(' · ')}</p>`;
 const D=A.filter(g=>g.th!==null&&g.th!==undefined),pos=Object.fromEntries(T.map(r=>[r.team,r.pl]));
 const sg=d=>d>0?'+'+d:String(d),pkt=(f,a)=>f>a?2:f===a?1:0,res=(f,a)=>f>a?'S':f<a?'N':'U';
@@ -274,7 +274,7 @@ $('tstats').innerHTML=card('7-Meter',row('TSV Lindau',tt('s7')+'/'+tt('v7')+pc(t
 +card('Zuschauer Heimspiele',hz.map(g=>row(g.datum.slice(0,5)+' vs. '+g.gegner,g.zuschauer)).join('')+(zz.length?row('Ø (mit Angabe)',Math.round(zz.reduce((a,b)=>a+b,0)/zz.length)):''));
 const ab=L.abgerufen?new Date(L.abgerufen).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}):'–';
 try{liga(L)}catch(e){$('lwarn').innerHTML=`<div class="empty">Liga-Daten konnten nicht ausgewertet werden (${esc(e.message)}).</div>`}
-$('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(String(L.stand_quelle).replace(/^Letzte Änderung:\s*/,''))}, zuletzt geändert ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch sonntags ca. 21:30 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
+$('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(String(L.stand_quelle).replace(/^Letzte Änderung:\s*/,''))}, zuletzt geändert ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch sonntags ca. 23:00 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
 draw();
 };
 // Reiter
