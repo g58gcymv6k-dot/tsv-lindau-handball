@@ -1,0 +1,52 @@
+name: Diagnose Liveticker (einmalig)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/diagnose.yml']
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Felder der Spiele
+        run: |
+          URL='https://spo.handball4all.de/service/if_g_json.php?ca=1&cl=166226&cmd=ps&og=216'
+          curl -s -A 'tsv-lindau-statistik (privat)' "$URL" -o raw.json
+          python3 - <<'EOF'
+          import json
+          d = json.load(open('raw.json')); d = d[0] if isinstance(d, list) else d
+          c = d['content']
+          print('content-Schlüssel:', list(c.keys()))
+          g = (c.get('games') or [])[0]
+          print('Spiel-Schlüssel:', json.dumps(g, ensure_ascii=False))
+          fg = ((c.get('futureGames') or {}).get('games') or [])
+          if fg: print('Zukunft-Spiel:', json.dumps(fg[0], ensure_ascii=False))
+          alle = (c.get('games') or []) + fg
+          for k in sorted({k for x in alle for k in x}):
+              werte = sorted({str(x.get(k)) for x in alle})
+              if any(w in k.lower() for w in ('live','tick','token','app','stream','sgid','gid')):
+                  print(k, '->', werte[:8], '(', len(werte), 'Werte)')
+          EOF
+      - name: CORS-Kopfzeilen
+        run: |
+          for U in 'https://spo.handball4all.de/service/if_g_json.php?ca=1&cl=166226&cmd=ps&og=216' \
+                   'https://spo.handball4all.de/service/ticker.html'; do
+            echo "== $U"
+            curl -s -D - -o /dev/null -H 'Origin: https://g58gcymv6k-dot.github.io' "$U" | grep -iE '^(HTTP|access-control|content-type|x-frame|content-security)' || true
+          done
+      - name: robots.txt
+        run: |
+          echo '== spo'; curl -s https://spo.handball4all.de/robots.txt
+          echo '== www'; curl -s https://www.handball4all.de/robots.txt
+      - name: Portal-Skripte nach Ticker durchsuchen
+        run: |
+          curl -s 'https://www.handball4all.de/home/portal/baden-wuerttembergischer-hv' -o portal.html
+          grep -oE '(src|href)="[^"]+\.js[^"]*"' portal.html | head -20
+          for J in $(grep -oE 'src="[^"]+\.js[^"]*"' portal.html | sed 's/src="//;s/"$//'); do
+            case "$J" in http*) U="$J";; //*) U="https:$J";; /*) U="https://www.handball4all.de$J";; *) U="https://www.handball4all.de/home/portal/$J";; esac
+            curl -s "$U" -o s.js
+            echo "== $U ($(wc -c < s.js) Bytes)"
+            grep -oiE '.{0,140}(ticker|live).{0,140}' s.js | head -25
+          done
