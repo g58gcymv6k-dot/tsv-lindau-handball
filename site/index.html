@@ -349,7 +349,7 @@ draw();
 try{liveInit(L)}catch(e){}
 };
 // Besucherzählung (GoatCounter). Zum Abschalten GC leer lassen ('').
-const GC='';
+const GC='tsvlindauherren';
 let gcQ=null;
 const gcCount=v=>{if(!GC)return;const p='/'+v;const g=window.goatcounter;if(g&&g.count)g.count({path:p,title:v});else gcQ=p};
 if(GC){$('dsg-gc').hidden=false;window.goatcounter={no_onload:true};const sc=document.createElement('script');sc.async=true;sc.src='https://gc.zgo.at/count.js';sc.dataset.goatcounter=`https://${GC}.goatcounter.com/count`;sc.onload=()=>{if(gcQ){window.goatcounter.count({path:gcQ,title:gcQ.slice(1)});gcQ=null}};document.head.appendChild(sc)}
