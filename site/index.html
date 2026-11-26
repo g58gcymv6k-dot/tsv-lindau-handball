@@ -80,6 +80,14 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 .fm{display:inline-flex;gap:3px}.fm i{font-style:normal;width:20px;height:20px;border-radius:4px;display:grid;place-items:center;font:800 13px "Barlow Condensed"}
 .kw{background:color-mix(in srgb,var(--win) 35%,transparent)}.kl{background:color-mix(in srgb,var(--loss) 30%,transparent)}.ku{background:#5557}
 #krt td,#krt th{font-size:13px;padding:6px 5px}#krt tbody td:first-child{max-width:150px;overflow:hidden;text-overflow:ellipsis}#krt .x{background:#0003}#krt .mec{outline:2px solid var(--brand);outline-offset:-2px}
+.live{margin-top:12px}.lv{background:#000;border:2px solid var(--loss);border-radius:10px;padding:14px 16px}
+.lv .lt{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}.lv .sc{font:800 34px/1 "Barlow Condensed"}
+.badge{display:inline-block;background:var(--loss);color:#fff;font:800 14px/1 Barlow;letter-spacing:.06em;padding:5px 8px;border-radius:5px;animation:bl 1.6s infinite}@keyframes bl{50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.badge{animation:none}}
+.btn{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid #fff;background:#000;color:#fff;font:600 16px Barlow;text-decoration:none;cursor:pointer;margin:10px 8px 0 0}
+.live iframe{display:block;width:100%;height:70vh;min-height:420px;border:0;border-radius:8px;background:#fff;margin-top:12px}
+.lw{background:#1f3021;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:#c9d6ca;font-size:14px}
+.ll{display:grid;gap:8px;margin-bottom:14px}.ll .lv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 14px}.ll .sc{font-size:26px}.ll .btn{margin:0}
 .reload{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid #4d6a51;background:#1f3021;color:#fafafa;display:grid;place-items:center;cursor:pointer}.reload:active{transform:rotate(90deg)}.reload:focus-visible{outline:2px solid #fff}
 </style></head><body>
 
@@ -96,6 +104,7 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 <section class="view band hero" id="v-uebersicht"><div class="wrap">
 <div class="kpis" id="kpis"></div>
 <div class="next" id="next"></div>
+<div class="live"><div id="live"></div><div id="liveframe"></div></div>
 <h3 style="margin:26px 0 2px">Saisonverlauf</h3>
 <p class="note" style="color:#c9d6ca;margin:0 0 10px">Ergebnis aus Lindauer Sicht (Lindau zuerst). Balken nach rechts: Sieg, nach links: Niederlage – die Zahl ist die Tordifferenz.</p>
 <div class="verlauf" id="verlauf"></div>
@@ -134,6 +143,7 @@ tr.me{background:color-mix(in srgb,var(--brand) 18%,transparent);font-weight:700
 <h2>Liga</h2>
 <div class="tabs" id="ltabs"><button data-l="tag" aria-pressed="true">Spieltag</button><button data-l="teams" aria-pressed="false">Teams</button><button data-l="kreuz" aria-pressed="false">Kreuztabelle</button><button data-l="rek" aria-pressed="false">Rekorde</button></div>
 <div id="lwarn"></div>
+<div id="llive"></div>
 <div class="lp" id="l-tag">
 <div class="wk"><button type="button" id="wkp" aria-label="Vorheriges Wochenende">‹</button><b id="wkl"></b><button type="button" id="wkn" aria-label="Nächstes Wochenende">›</button></div>
 <div class="card scroll"><table id="wkt"></table></div>
@@ -220,6 +230,57 @@ $('rkg').innerHTML=h;
 };
 const lshow=p=>{for(const x of $('ltabs').children)x.setAttribute('aria-pressed',x.dataset.l===p);for(const d of document.querySelectorAll('.lp'))d.classList.toggle('on',d.id==='l-'+p)};
 $('ltabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)lshow(b.dataset.l)});lshow('tag');
+// ---------- Liveticker (direkt von handball4all, nur rund um Spielzeiten) ----------
+// Gleiche Felder/Adresse wie im handball4all-Portal: live, gToken, gAppid -> service/ticker.html?token=&appid=
+const LIVE_URL='https://spo.handball4all.de/service/if_g_json.php?ca=1&cl=166226&cmd=ps&og=216';
+const TICKER=(g,proto)=>`${proto}://spo.handball4all.de/service/ticker.html?token=${encodeURIComponent(g.gToken)}&appid=${encodeURIComponent(g.gAppid)}`;
+const TEST=new URLSearchParams(location.search).has('livetest');
+let liveT=null,liveBusy=false,liveFrame=null;
+const liveInit=L=>{
+const A=(L.alle||[]).filter(g=>g.iso&&/^\d\d:\d\d$/.test(g.zeit)&&(g.th===null||g.th===undefined));
+const t0=g=>new Date(g.iso+'T'+g.zeit+':00').getTime();
+// Fenster: 30 Min. vor bis 3 Std. nach Anwurf (Annahme: Gerät in deutscher Zeitzone)
+const imFenster=g=>{const d=Date.now()-t0(g);return d>-30*60e3&&d<3*3600e3};
+const mineIn=()=>A.filter(g=>(g.heim===ME||g.gast===ME)&&imFenster(g));
+const anyIn=()=>TEST||A.some(imFenster);
+const liste=v=>Array.isArray(v)?v:(v&&Array.isArray(v.games)?v.games:[]);
+const goals=x=>{const n=parseInt(String(x??'').trim(),10);return Number.isFinite(n)?n:null};
+const render=(games,err)=>{
+const live=games.filter(g=>g.live===true||g.live==='true'||g.live===1);
+const meL=live.filter(g=>String(g.gHomeTeam).trim()===ME||String(g.gGuestTeam).trim()===ME);
+const sc=g=>{const h=goals(g.gHomeGoals),a=goals(g.gGuestGoals);return h!==null&&a!==null?`${h}:${a}`:'–:–'};
+const btns=(g,frame)=>g.gToken?`<a class="btn" href="${esc(TICKER(g,'http'))}" target="_blank" rel="noopener">Liveticker öffnen</a>${frame?`<button class="btn" type="button" id="lvf">${liveFrame===g.gID?'Ticker ausblenden':'Ticker hier anzeigen'}</button>`:''}`:'<span class="note">Kein Ticker-Link übermittelt</span>';
+const tst=TEST?' <span class="note">(TESTANSICHT, keine echten Daten)</span>':'';
+// Übersicht
+let h='';
+if(meL.length){h=meL.map(g=>`<div class="lv"><div class="lt"><span class="badge">LIVE</span><span>seit ${esc(g.gTime)} Uhr${tst}</span></div>
+<div class="lt" style="margin-top:6px"><b>${esc(g.gHomeTeam)} – ${esc(g.gGuestTeam)}</b><span class="sc">${sc(g)}</span></div>
+<div class="note">Zwischenstand laut handball4all, aktualisiert ${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr (jede Minute)</div>
+${btns(g,true)}</div>`).join('')}
+else{const m=mineIn()[0];if(m&&!TEST)h=`<div class="lw">Anwurf ${esc(m.zeit)} Uhr – ${err?'Live-Daten derzeit nicht abrufbar.':'sobald bei handball4all ein Liveticker läuft, erscheint er hier.'}</div>`}
+$('live').innerHTML=h;
+// eingebetteter Ticker: nur beim Umschalten ändern, damit er nicht jede Minute neu lädt
+const fg=meL.find(g=>g.gID===liveFrame&&g.gToken),fe=$('liveframe');
+if(!fg){fe.innerHTML='';liveFrame=null}
+else if(fe.dataset.id!==String(fg.gID)||!fe.firstChild){fe.dataset.id=fg.gID;fe.innerHTML=`<iframe src="${esc(TICKER(fg,'https'))}" title="Liveticker" loading="lazy"></iframe><p class="note" style="margin:6px 0 0">Bleibt das Feld leer, bitte „Liveticker öffnen“ nutzen.</p>`}
+const b=$('lvf');if(b)b.onclick=()=>{const g=meL[0];liveFrame=liveFrame===g.gID?null:g.gID;render(games,err)};
+// Liga
+$('llive').innerHTML=live.length?`<h3 style="margin-top:0">Jetzt live${tst}</h3><div class="ll">${live.map(g=>`<div class="lv"><div><span class="badge">LIVE</span> <b>${esc(g.gHomeTeam)} – ${esc(g.gGuestTeam)}</b><div class="note">seit ${esc(g.gTime)} Uhr${g.gGymnasiumTown?' · '+esc(g.gGymnasiumTown):''}</div></div><div class="sc" style="text-align:right">${sc(g)}</div><div style="grid-column:1/-1">${g.gToken?`<a class="btn" href="${esc(TICKER(g,'http'))}" target="_blank" rel="noopener">Liveticker</a>`:'<span class="note">Kein Ticker-Link übermittelt</span>'}</div></div>`).join('')}</div>`
+:(anyIn()?`<div class="lw" style="margin-bottom:14px">${err?'Live-Daten derzeit nicht abrufbar.':'Gerade läuft kein Spiel mit Liveticker.'}</div>`:'');
+};
+const testDaten=()=>[{gID:'t1',live:true,gToken:'test',gAppid:'test',gTime:'18:00',gHomeTeam:ME,gGuestTeam:'TSB Ravensburg',gHomeGoals:'14',gGuestGoals:'12',gGymnasiumTown:'Lindau'},
+{gID:'t2',live:true,gToken:'',gAppid:'',gTime:'18:30',gHomeTeam:'TV Weingarten',gGuestTeam:'HSG FN-Fisch',gHomeGoals:' ',gGuestGoals:' ',gGymnasiumTown:'Weingarten'}];
+const poll=async()=>{
+if(liveBusy||document.visibilityState!=='visible')return;
+if(!anyIn()){$('live').innerHTML='';$('liveframe').innerHTML='';$('llive').innerHTML='';return}
+liveBusy=true;
+try{let games;
+if(TEST)games=testDaten();
+else{const r=await fetch(LIVE_URL,{cache:'no-store'});if(!r.ok)throw new Error(r.status);const j=await r.json();const d=Array.isArray(j)?j[0]:j,c=(d&&d.content)||{};games=[...liste(c.actualGames),...liste(c.futureGames)]}
+render(games,false)}catch(e){render([],true)}finally{liveBusy=false}};
+poll();clearInterval(liveT);liveT=setInterval(poll,60e3);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')poll()});
+};
 const start=(L,S)=>{
 const table=L.tabelle,me=table.find(r=>r.team===ME)||{};
 const games=L.spiele.map(g=>{const home=g.heim===ME,played=g.th!==null&&g.th!==undefined;const f=played?(home?g.th:g.tg):null,a=played?(home?g.tg:g.th):null;
@@ -276,6 +337,7 @@ const ab=L.abgerufen?new Date(L.abgerufen).toLocaleString('de-DE',{dateStyle:'me
 try{liga(L)}catch(e){$('lwarn').innerHTML=`<div class="empty">Liga-Daten konnten nicht ausgewertet werden (${esc(e.message)}).</div>`}
 $('foot').innerHTML=`Quelle: handball4all (Spielbetrieb BWHV), ${esc(L.liga)} ${esc(L.staffel)}. Tabelle/Spielplan: Stand laut Quelle ${esc(String(L.stand_quelle).replace(/^Letzte Änderung:\s*/,''))}, zuletzt geändert ${esc(ab)}. Spielerstatistik: ${SG.length} Spielberichte (letzter vom ${esc(SG.length?SG[SG.length-1].datum:'–')}). Aktualisierung automatisch samstags und sonntags ca. 23:00 Uhr. · <a href="https://www.bwhv.org/spielbetrieb/ergebnisse/tabellen#/league?ogId=216&lId=166226&allGames=1">Liga auf bwhv.org</a>`;
 draw();
+try{liveInit(L)}catch(e){}
 };
 // Reiter
 const V=['uebersicht','tabelle','spiele','spieler','statistik','liga'];
