@@ -58,6 +58,13 @@ jobs:
             git push
           fi
 
+      - name: Versionsnummer eintragen (damit die App Neuerungen erkennt)
+        if: steps.zeit.outputs.skip != 'true'
+        run: |
+          V="$(git rev-parse --short HEAD)-$(date +%s)"
+          sed -i "s/__VERSION__/$V/" site/index.html
+          echo "$V" > site/version.txt
+
       - name: Seite vorbereiten
         if: steps.zeit.outputs.skip != 'true'
         uses: actions/upload-pages-artifact@v3
