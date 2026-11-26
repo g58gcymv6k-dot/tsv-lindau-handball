@@ -29,20 +29,41 @@ def laden(quelle):
 
 
 def _tok(name):
-    return [t for t in str(name).lower().replace('.', ' ').replace('-', ' ').split() if t]
+    n = str(name).lower()
+    for z in './-':
+        n = n.replace(z, ' ')
+    return [t for t in n.split() if t]
+
+
+def _passt(k, l):
+    """Kurz-Token k passt zu Lang-Token l: Präfix ("handb"/"handball") oder Abkürzung mit
+    gleichem Anfangsbuchstaben und Buchstaben in Reihenfolge ("fn"/"friedrichshafen")."""
+    if l.startswith(k):
+        return True
+    if k.isdigit() or l.isdigit() or k[0] != l[0]:
+        return False
+    it = iter(l)
+    return all(ch in it for ch in k)
+
+
+def _kurzform(kurz, lang):
+    k, l = _tok(kurz), _tok(lang)
+    if not k or not l or (l[-1].isdigit() and len(l[-1]) == 1 and k[-1] != l[-1]):
+        return False  # Mannschaftsnummer (z. B. "2") muss übereinstimmen
+    i = 0
+    for t in l:  # Lang-Tokens dürfen übersprungen werden ("1847", "Handball")
+        if i < len(k) and _passt(k[i], t):
+            i += 1
+    return i == len(k)
 
 
 def zuordnen(name, tabellen_namen):
-    """Spielplan nutzt teils Kurzformen ("Bregenz Handb. 2" statt "Bregenz Handball 2").
-    Ordnet einen Namen eindeutig einem Tabellennamen zu; sonst bleibt der Originalname."""
+    """Spielplan nutzt Kurzformen ("HSG FN-Fisch" statt "HSG Friedrichshafen-Fischbach").
+    Ordnet einen Namen eindeutig einem Tabellennamen zu; sonst bleibt der Originalname
+    (die Gegenprobe pruefen_alle meldet das dann)."""
     if name in tabellen_namen:
         return name
-    a = _tok(name)
-    treffer = []
-    for t in tabellen_namen:
-        b = _tok(t)
-        if len(a) == len(b) and all(x.startswith(y) or y.startswith(x) for x, y in zip(a, b)):
-            treffer.append(t)
+    treffer = [t for t in tabellen_namen if _kurzform(name, t)]
     return treffer[0] if len(treffer) == 1 else name
 
 
